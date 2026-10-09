@@ -273,7 +273,7 @@ export function App() {
         <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs" style={{ color: 'var(--texto-suave)' }}>
           <div className="flex items-center gap-3">
             <img
-              src="/assets/img/logo-secretaria-gestion.png"
+              src={`${import.meta.env.BASE_URL}assets/img/logo-secretaria-gestion.png`}
               alt="Secretaría de Gestión y Participación Ciudadana"
               className="h-7 w-auto object-contain brightness-0 dark:brightness-100 dark:invert-0 opacity-80"
             />

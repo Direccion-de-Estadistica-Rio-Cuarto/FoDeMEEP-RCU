@@ -82,7 +82,7 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
         <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: 'var(--borde)' }}>
           <div className="flex items-center gap-3">
             <img
-              src="/assets/img/logo-gobierno.webp"
+              src={`${import.meta.env.BASE_URL}assets/img/logo-gobierno.webp`}
               alt="Gobierno de Río Cuarto"
               className="h-8 w-auto object-contain"
             />
@@ -163,7 +163,7 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
             <p className="etiqueta">ODS 4 Infraestructura</p>
             <div className="flex items-center gap-3 mt-1">
               <img
-                src="/assets/img/ods/ods-04.png"
+                src={`${import.meta.env.BASE_URL}assets/img/ods/ods-04.png`}
                 alt="ODS 4"
                 className="w-12 h-12 rounded-lg object-contain shadow-xs flex-shrink-0"
               />

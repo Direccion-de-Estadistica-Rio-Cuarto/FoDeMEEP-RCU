@@ -45,7 +45,7 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
             </button>
           ) : (
             <img
-              src="/assets/img/logo-secretaria-gestion.png"
+              src={`${import.meta.env.BASE_URL}assets/img/logo-secretaria-gestion.png`}
               alt="Río Cuarto Gobierno - Secretaría de Gestión y Participación Ciudadana"
               className="h-7 sm:h-8 w-auto object-contain flex-shrink-0"
             />

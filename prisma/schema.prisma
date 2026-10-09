@@ -1,0 +1,328 @@
+// Prisma Schema para Sistema FODEMEP - Relevamiento y Monitoreo Provincial
+// Instituciones Educativas de Río Cuarto, Índices de Infraestructura y Gestión de Obras
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------------------------------------------
+// ENUMS
+// -------------------------------------------------------------
+
+enum ModalidadEducativa {
+  COMUN
+  ADULTOS
+  ESPECIAL
+  ARTISTICA
+}
+
+enum SectorEducativo {
+  PUBLICO
+  PRIVADO
+  MUNICIPAL
+}
+
+enum AmbitoEducativo {
+  URBANO
+  RURAL
+  PERIFERICO
+}
+
+enum EstadoSemaforo {
+  CRITICO    // 0 - 39
+  ALERTA     // 40 - 59
+  ACEPTABLE  // 60 - 79
+  OPTIMO     // 80 - 100
+}
+
+enum RolUsuario {
+  ADMIN_PROVINCIAL
+  SUPERVISOR_MUNICIPAL
+  INSPECTOR_CAMPO
+  DIRECTIVO_ESCOLAR
+  CONTRATISTA
+}
+
+enum EstadoRelevamiento {
+  BORRADOR
+  EN_PROCESO
+  COMPLETADO
+  AUDITADO
+}
+
+enum CalificacionRubrica {
+  BUENO
+  REGULAR
+  MALO
+  NO_POSEE
+  NO_APLICA
+}
+
+enum SeveridadIncidencia {
+  LEVE
+  MEDIA
+  GRAVE
+  CRITICA
+}
+
+enum JurisdiccionIncidencia {
+  FODEMEP          // Descentralizado municipal / Mantenimiento correctivo y preventivo
+  PROVINCIA_MAYOR  // Infraestructura mayor / Ministerio de Educación CBA
+  COOPERADORA      // Recursos propios de la institución
+}
+
+enum EstadoIncidencia {
+  REPORTADA
+  PRESUPUESTADA
+  EN_EJECUCION
+  RESUELTA
+  CANCELADA
+}
+
+// -------------------------------------------------------------
+// MODELOS PRINCIPALES
+// -------------------------------------------------------------
+
+/// Institución Educativa oficial de Río Cuarto
+model InstitucionEducativa {
+  id                   String              @id
+  cue                  String?             @unique
+  codigoInspeccion     String?             @map("codigo_inspeccion")
+  inspectorNombre      String?             @map("inspector_nombre")
+  inspectorTelefono    String?             @map("inspector_telefono")
+  codigoEmp            String?             @map("codigo_emp")
+  nombre               String
+  modalidad            ModalidadEducativa  @default(COMUN)
+  nivel                String              // 'Inicial', 'Primario', 'Secundario', 'Superior', etc.
+  sector               SectorEducativo     @default(PUBLICO)
+  ambito               AmbitoEducativo     @default(URBANO)
+  turno                String?             // 'Mañana, Tarde', 'Noche', etc.
+  categoria            String?             // 'Primera', 'Segunda', 'Tercera'
+  
+  // Ubicación física y contacto
+  domicilio            String
+  barrio               String?
+  localidad            String              @default("Río Cuarto")
+  departamento         String              @default("Río Cuarto")
+  latitud              Float?
+  longitud             Float?
+  telefono             String?
+  emailInstitucional   String?             @map("email_institucional")
+  directivoNombre      String?             @map("directivo_nombre")
+  directivoTelefono    String?             @map("directivo_telefono")
+  directivoEmail       String?             @map("directivo_email")
+  
+  // Matrícula y accesibilidad motriz / inclusiva
+  matricula2024        Int?                @default(0) @map("matricula_2024")
+  matricula2025        Int?                @default(0) @map("matricula_2025")
+  alumnosDiscapacidad  Int?                @default(0) @map("alumnos_discapacidad")
+  tieneRampa           Boolean             @default(false) @map("tiene_rampa")
+  tieneBanoAdaptado    Boolean             @default(false) @map("tiene_bano_adaptado")
+  tieneSillaRuedas     Boolean             @default(false) @map("tiene_silla_ruedas")
+  sillaRuedasUrgente   String?             @map("silla_ruedas_urgente")
+
+  // Estado del Índice FoDeMEEP (IES)
+  ultimoIndiceIes      Float?              @default(100.0) @map("ultimo_indice_ies")
+  estadoSemaforo       EstadoSemaforo      @default(OPTIMO) @map("estado_semaforo")
+
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  // Relaciones
+  relevamientos        Relevamiento[]
+  incidencias          Incidencia[]
+  intervenciones       IntervencionObra[]
+  historialIndice      HistorialIndice[]
+
+  @@map("instituciones_educativas")
+}
+
+/// Usuario del sistema (Inspectores técnicos, Supervisores FODEMEP, Directores)
+model Usuario {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  nombreCompleto String          @map("nombre_completo")
+  rol            RolUsuario      @default(INSPECTOR_CAMPO)
+  telefono       String?
+  activo         Boolean         @default(true)
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  relevamientos  Relevamiento[]
+
+  @@map("usuarios")
+}
+
+/// Cabecera de Relevamiento Técnico a Campo (PWA Móvil)
+model Relevamiento {
+  id                     String               @id @default(uuid())
+  institucionId          String               @map("institucion_id")
+  inspectorId            String?              @map("inspector_id")
+  fechaRelevamiento      DateTime             @default(now()) @map("fecha_relevamiento")
+  estado                 EstadoRelevamiento   @default(BORRADOR)
+  
+  // Puntaje consolidado y semaforización
+  indiceIesTotal         Float?               @map("indice_ies_total")
+  estadoSemaforo         EstadoSemaforo       @default(OPTIMO) @map("estado_semaforo")
+  bloqueoKillSwitch      Boolean              @default(false) @map("bloqueo_kill_switch")
+  motivoKillSwitch       String?              @map("motivo_kill_switch")
+
+  // Subíndices por dimensión (0 - 100)
+  indiceSeguridad        Float?               @map("indice_seguridad")
+  indiceHabitabilidad    Float?               @map("indice_habitabilidad")
+  indiceServicios        Float?               @map("indice_servicios")
+  indiceConfort          Float?               @map("indice_confort")
+  indiceAccesibilidad    Float?               @map("indice_accesibilidad")
+  indiceExteriores       Float?               @map("indice_exteriores")
+  indiceConectividad     Float?               @map("indice_conectividad")
+
+  observacionesGenerales String?              @map("observaciones_generales")
+  firmaInspector         String?              @map("firma_inspector")
+  firmaDirectivo         String?              @map("firma_directivo")
+  sincronizadoOffline    Boolean              @default(false) @map("sincronizado_offline")
+
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+
+  // Relaciones
+  institucion            InstitucionEducativa @relation(fields: [institucionId], references: [id])
+  inspector              Usuario?             @relation(fields: [inspectorId], references: [id])
+  respuestas             RespuestaRelevamiento[]
+  evidenciasFotograficas EvidenciaFotografica[]
+  incidencias            Incidencia[]
+  historialIndice        HistorialIndice[]
+
+  @@map("relevamientos")
+}
+
+/// Detalle de Respuestas del Cuestionario Homogéneo (14 secciones, 166 preguntas)
+model RespuestaRelevamiento {
+  id              String               @id @default(uuid())
+  relevamientoId  String               @map("relevamiento_id")
+  seccionId       Int                  @map("seccion_id")
+  preguntaId      Int                  @map("pregunta_id")
+  calificacion    CalificacionRubrica?
+  valorTexto      String?              @map("valor_texto")
+  valorNumero     Float?               @map("valor_numero")
+  valorJson       Json?                @map("valor_json")
+  observacion     String?
+
+  relevamiento    Relevamiento         @relation(fields: [relevamientoId], references: [id], onDelete: Cascade)
+
+  @@unique([relevamientoId, preguntaId])
+  @@map("respuestas_relevamiento")
+}
+
+/// Catálogo de las 20 incidencias oficiales del FoDeMEEP
+model CatalogoIncidencia {
+  codigo              String                 @id // PLOMERIA, ELECTRICIDAD, GAS, etc.
+  nombre              String
+  descripcion         String?
+  jurisdiccionDefault JurisdiccionIncidencia @default(FODEMEP) @map("jurisdiccion_default")
+  severidadDefault    SeveridadIncidencia    @default(MEDIA) @map("severidad_default")
+  ordenVisual         Int                    @default(0) @map("orden_visual")
+
+  incidencias         Incidencia[]
+
+  @@map("catalogo_incidencias")
+}
+
+/// Incidencia registrada durante el relevamiento o reportada por el directivo
+model Incidencia {
+  id               String                 @id @default(uuid())
+  institucionId    String                 @map("institucion_id")
+  relevamientoId   String?                @map("relevamiento_id")
+  tipoCodigo       String                 @map("tipo_codigo")
+  seccionId        Int?                   @map("seccion_id")
+  preguntaId       Int?                   @map("pregunta_id")
+  titulo           String
+  descripcion      String
+  severidad        SeveridadIncidencia    @default(MEDIA)
+  jurisdiccion     JurisdiccionIncidencia @default(FODEMEP)
+  estado           EstadoIncidencia       @default(REPORTADA)
+  costoEstimado    Float?                 @map("costo_estimado")
+  costoFinal       Float?                 @map("costo_final")
+  fechaReporte     DateTime               @default(now()) @map("fecha_reporte")
+  fechaResolucion  DateTime?              @map("fecha_resolucion")
+
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  institucion      InstitucionEducativa   @relation(fields: [institucionId], references: [id])
+  relevamiento     Relevamiento?          @relation(fields: [relevamientoId], references: [id])
+  tipo             CatalogoIncidencia     @relation(fields: [tipoCodigo], references: [codigo])
+  evidencias       EvidenciaFotografica[]
+  intervenciones   IntervencionObra[]
+  historial        HistorialIndice[]
+
+  @@map("incidencias")
+}
+
+/// Evidencia Fotográfica geolocalizada y vinculada a preguntas o incidencias
+model EvidenciaFotografica {
+  id                String       @id @default(uuid())
+  relevamientoId    String       @map("relevamiento_id")
+  seccionId         Int          @map("seccion_id")
+  preguntaId        Int          @map("pregunta_id")
+  incidenciaId      String?      @map("incidencia_id")
+  urlAlmacenamiento String       @map("url_almacenamiento")
+  nombreArchivo     String?      @map("nombre_archivo")
+  pesoBytes         Int?         @map("peso_bytes")
+  latitud           Float?
+  longitud          Float?
+  esCritica         Boolean      @default(false) @map("es_critica")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  relevamiento      Relevamiento @relation(fields: [relevamientoId], references: [id], onDelete: Cascade)
+  incidencia        Incidencia?  @relation(fields: [incidenciaId], references: [id])
+
+  @@map("evidencias_fotograficas")
+}
+
+/// Orden de Trabajo / Intervención ejecutada por el Municipio (FoDeMEEP) o la Provincia
+model IntervencionObra {
+  id                   String               @id @default(uuid())
+  incidenciaId         String               @map("incidencia_id")
+  institucionId        String               @map("institucion_id")
+  numeroOrden          String?              @map("numero_orden")
+  contratista          String?
+  montoAdjudicado      Float?               @map("monto_adjudicado")
+  porcentajeAvance     Int                  @default(0) @map("porcentaje_avance") // 0 a 100%
+  fechaInicio          DateTime?            @map("fecha_inicio")
+  fechaFinEstimada     DateTime?            @map("fecha_fin_estimada")
+  fechaFinalizacion    DateTime?            @map("fecha_finalizacion")
+  actaRecepcionUrl     String?              @map("acta_recepcion_url")
+
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  incidencia           Incidencia           @relation(fields: [incidenciaId], references: [id])
+  institucion          InstitucionEducativa @relation(fields: [institucionId], references: [id])
+
+  @@map("intervenciones_obra")
+}
+
+/// Histórico de Evolución del Índice IES por Institución
+model HistorialIndice {
+  id              String               @id @default(uuid())
+  institucionId   String               @map("institucion_id")
+  relevamientoId  String?              @map("relevamiento_id")
+  incidenciaId    String?              @map("incidencia_id")
+  fecha           DateTime             @default(now())
+  indiceAnterior  Float                @map("indice_anterior")
+  indiceNuevo     Float                @map("indice_nuevo")
+  variacion       Float
+  motivoCambio    String               @map("motivo_cambio")
+  estadoSemaforo  EstadoSemaforo       @map("estado_semaforo")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  institucion     InstitucionEducativa @relation(fields: [institucionId], references: [id])
+  relevamiento    Relevamiento?        @relation(fields: [relevamientoId], references: [id])
+  incidencia      Incidencia?          @relation(fields: [incidenciaId], references: [id])
+
+  @@map("historial_indice")
+}

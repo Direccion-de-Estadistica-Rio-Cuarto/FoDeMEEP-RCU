@@ -1,0 +1,41 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Build y distribución
+dist/
+dist-ssr/
+*.local
+
+# Cache y TypeScript
+.cache/
+*.tsbuildinfo
+
+# Variables de entorno y credenciales
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credenciales*.json
+secretos*.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+.vscode/
+.idea/
+*.swp
+
+# Carpetas de referencia temporal
+rcu_template/
+template_ref/

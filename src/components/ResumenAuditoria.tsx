@@ -58,20 +58,30 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
 
   const handleFinalizar = async () => {
     setSincronizando(true);
+    const borradorConFirma: RelevamientoBorrador = {
+      ...borrador,
+      tecnicoNombre: tecnicoFirma || borrador.tecnicoNombre,
+      finalizado: true,
+      respuestas: {
+        ...borrador.respuestas,
+        3: tecnicoFirma || (borrador.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
+      },
+      fechaUltimaModificacion: Date.now(),
+    };
     try {
       // 1. Persistir y sellar localmente en IndexedDB
-      await prepararYEncolarParaSync(borrador);
+      const sellado = await prepararYEncolarParaSync(borradorConFirma);
 
-      // 2. Intentar transmisión a la base de datos central
-      const resServidor = await sincronizarConServidor(borrador, escuela.cue, escuela.nombre);
+      // 2. Intentar transmisión a la base de datos central y relay cloud del Monitor
+      const resServidor = await sincronizarConServidor(sellado, escuela.cue, escuela.nombre);
       setResultadoSync(resServidor);
     } catch (err: any) {
       console.warn('Registro en cola de sincronización:', err);
       setResultadoSync({
         exitoServidor: false,
         mensaje: 'Guardado de forma segura en el almacenamiento local del dispositivo (IndexedDB).',
-        totalRespuestas: Object.keys(borrador.respuestas).length,
-        totalFotos: borrador.fotos.length,
+        totalRespuestas: Object.keys(borradorConFirma.respuestas).length,
+        totalFotos: borradorConFirma.fotos.length,
       });
     } finally {
       setSincronizando(false);

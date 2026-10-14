@@ -12,10 +12,12 @@ import {
   guardarBorradorEnStorage,
   cargarBorradorDeStorage,
   limpiarDatosEjemploPrevios,
+  sincronizarTodosLosBorradoresConMonitor,
 } from './services/storageLocal';
 
-// Limpiar datos de ejemplo antiguos en memoria local
+// Limpiar datos de ejemplo antiguos en memoria local y sincronizar relevamientos reales activos con el Monitor
 limpiarDatosEjemploPrevios();
+sincronizarTodosLosBorradoresConMonitor();
 
 export function App() {
   const [escuelaActual, setEscuelaActual] = useState<Escuela>(ESCUELAS_RIO_CUARTO[0]);
@@ -24,9 +26,13 @@ export function App() {
   const [mostrarSelectorEscuela, setMostrarSelectorEscuela] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  // Escuchar estado de conectividad en el teléfono
+  // Escuchar estado de conectividad en el teléfono y asegurar sincronización con Monitor
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
+    sincronizarTodosLosBorradoresConMonitor();
+    const handleOnline = () => {
+      setIsOffline(false);
+      sincronizarTodosLosBorradoresConMonitor();
+    };
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

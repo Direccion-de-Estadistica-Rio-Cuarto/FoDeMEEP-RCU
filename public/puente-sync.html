@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Puente de Sincronización FoDeMEEP</title>
+</head>
+<body>
+<script>
+(function () {
+  const STORAGE_PREFIX = 'fodemep_relevamiento_v2_';
+  const DB_NOMBRE = 'FoDeMEEP_CAMPO_DB';
+
+  function leerLocalStorage() {
+    const lista = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(STORAGE_PREFIX)) {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const b = JSON.parse(raw);
+            if (b && b.escuelaId) lista.push(b);
+          }
+        }
+      }
+    } catch (e) {}
+    return lista;
+  }
+
+  function leerIndexedDB() {
+    return new Promise((resolve) => {
+      try {
+        if (!window.indexedDB) return resolve([]);
+        const req = window.indexedDB.open(DB_NOMBRE, 1);
+        req.onerror = () => resolve([]);
+        req.onsuccess = (ev) => {
+          const db = ev.target.result;
+          if (!db.objectStoreNames.contains('relevamientos')) return resolve([]);
+          const tx = db.transaction('relevamientos', 'readonly');
+          const getAll = tx.objectStore('relevamientos').getAll();
+          getAll.onsuccess = () => resolve(getAll.result || []);
+          getAll.onerror = () => resolve([]);
+        };
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  }
+
+  async function recolectarYEnviar() {
+    const porEscuela = {};
+    const desdeLS = leerLocalStorage();
+    const desdeIDB = await leerIndexedDB();
+
+    desdeIDB.concat(desdeLS).forEach((b) => {
+      if (!b || !b.escuelaId) return;
+      const resp = b.respuestas || {};
+      const nResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '').length;
+      const nFotos = (b.fotos || []).length;
+      if (nResp > 0 || nFotos > 0) {
+        const prev = porEscuela[b.escuelaId];
+        if (!prev || (b.fechaUltimaModificacion || 0) >= (prev.fechaUltimaModificacion || 0)) {
+          porEscuela[b.escuelaId] = b;
+        }
+      }
+    });
+
+    const borradores = Object.values(porEscuela);
+    if (borradores.length > 0) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ tipo: 'FODEMEEP_SYNC_BORRADORES', borradores }, '*');
+      }
+      fetch('http://localhost:5505/api/relevamientos-vivos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ borradores })
+      }).catch(() => {});
+    }
+  }
+
+  recolectarYEnviar();
+
+  window.addEventListener('storage', (e) => {
+    if (e.key && e.key.startsWith(STORAGE_PREFIX)) {
+      recolectarYEnviar();
+    }
+  });
+
+  if (typeof BroadcastChannel !== 'undefined') {
+    const canal = new BroadcastChannel('fodemep_live_channel');
+    canal.onmessage = (msg) => {
+      if (msg.data && msg.data.borrador) {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ tipo: 'FODEMEEP_SYNC_BORRADORES', borradores: [msg.data.borrador] }, '*');
+        }
+        fetch('http://localhost:5505/api/relevamientos-vivos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ borrador: msg.data.borrador })
+        }).catch(() => {});
+      }
+    };
+  }
+})();
+</script>
+</body>
+</html>

@@ -30,6 +30,71 @@ export function limpiarDatosEjemploPrevios(): void {
 }
 
 /**
+ * Envía un lote de borradores hacia el servidor del Monitor (puerto 5505 / proxy 3001 y relay cloud HTTPS)
+ */
+const CLOUD_RELAY_URL = 'https://ntfy.sh/fodemep_rcu_sync_2026_prod';
+
+function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[]): void {
+  if (!borradores || borradores.length === 0) return;
+  const compactos = borradores.map((b) => ({
+    escuelaId: b.escuelaId,
+    uuid: b.uuid,
+    tecnicoNombre: b.tecnicoNombre || (b.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
+    fecha: b.fecha,
+    respuestas: b.respuestas,
+    finalizado: b.finalizado,
+    hashIntegridad: b.hashIntegridad,
+    fechaUltimaModificacion: b.fechaUltimaModificacion || Date.now(),
+  }));
+  const payload = JSON.stringify({ borradores: compactos });
+  const headers = { 'Content-Type': 'application/json' };
+  fetch('/api/relevamientos-vivos', { method: 'POST', headers, body: payload }).catch(() => {});
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5505') {
+    fetch('http://localhost:5505/api/relevamientos-vivos', { method: 'POST', headers, body: payload }).catch(() => {});
+  }
+  const finalizados = compactos.filter((b) => b.finalizado);
+  if (finalizados.length > 0) {
+    fetch(CLOUD_RELAY_URL, { method: 'POST', body: JSON.stringify({ borradores: finalizados }) }).catch(() => {});
+  }
+}
+
+/**
+ * Sincroniza todos los relevamientos guardados en localStorage e IndexedDB con el Monitor
+ */
+export async function sincronizarTodosLosBorradoresConMonitor(): Promise<void> {
+  try {
+    const porEscuela: Record<string, RelevamientoBorrador> = {};
+    const desdeLS = listarTodosLosBorradores();
+    let desdeIDB: RelevamientoBorrador[] = [];
+    try {
+      desdeIDB = await listarRelevamientosIDB();
+    } catch {
+      // Ignorar si IDB no está listo
+    }
+
+    [...desdeIDB, ...desdeLS].forEach((b) => {
+      if (!b || !b.escuelaId) return;
+      const resp = b.respuestas || {};
+      const nResp = Object.keys(resp).filter((k) => resp[Number(k)] !== undefined && resp[Number(k)] !== null && resp[Number(k)] !== '').length;
+      const nFotos = (b.fotos || []).length;
+      if (nResp > 0 || nFotos > 0) {
+        const prev = porEscuela[b.escuelaId];
+        if (!prev || (b.fechaUltimaModificacion || 0) >= (prev.fechaUltimaModificacion || 0)) {
+          porEscuela[b.escuelaId] = b;
+        }
+      }
+    });
+
+    const activos = Object.values(porEscuela);
+    if (activos.length > 0) {
+      despacharBorradoresAlMonitor(activos);
+    }
+  } catch (e) {
+    console.warn('Error al sincronizar borradores con el Monitor:', e);
+  }
+}
+
+/**
  * Guarda el borrador de manera inmediata en localStorage (para rendimiento táctil < 16ms)
  * y en segundo plano asincrónico en IndexedDB (para almacenamiento masivo y transaccional).
  */
@@ -47,6 +112,15 @@ export function guardarBorradorEnStorage(borrador: RelevamientoBorrador): void {
       } catch (bcErr) {
         // Ignorar si el navegador bloquea canales
       }
+    }
+
+    // Sincronizar con el Monitor si posee respuestas o fotos cargadas
+    const resp = borrador.respuestas || {};
+    const tieneDatos =
+      Object.keys(resp).some((k) => resp[Number(k)] !== undefined && resp[Number(k)] !== null && resp[Number(k)] !== '') ||
+      (borrador.fotos && borrador.fotos.length > 0);
+    if (tieneDatos) {
+      despacharBorradoresAlMonitor([borrador]);
     }
 
     // Réplica asincrónica en IndexedDB (sin bloquear el hilo de la UI)

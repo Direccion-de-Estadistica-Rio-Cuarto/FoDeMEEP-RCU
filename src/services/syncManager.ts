@@ -150,6 +150,8 @@ export function generarPaqueteExportacion(
  * a la API del servidor municipal. Si el dispositivo no tiene conexión o el
  * servidor está offline, se preserva en la cola local de IndexedDB.
  */
+const CLOUD_RELAY_URL = 'https://ntfy.sh/fodemep_rcu_sync_2026_prod';
+
 export async function sincronizarConServidor(
   borrador: RelevamientoBorrador,
   cue: string = '000000000',
@@ -163,44 +165,60 @@ export async function sincronizarConServidor(
   error?: string;
 }> {
   const paquete = generarPaqueteExportacion(borrador, cue, nombreEscuela);
+  const borradorCompacto = {
+    escuelaId: borrador.escuelaId,
+    cue,
+    nombreEscuela,
+    uuid: borrador.uuid || `REL-2026-${cue}`,
+    tecnicoNombre: borrador.tecnicoNombre || (borrador.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
+    fecha: borrador.fecha || new Date().toISOString().split('T')[0],
+    respuestas: borrador.respuestas,
+    finalizado: true,
+    hashIntegridad: borrador.hashIntegridad,
+    fechaUltimaModificacion: Date.now(),
+  };
 
-  // Intentar envío HTTP al endpoint /api/v1/sync
+  let exitoLocal = false;
+  let exitoCloud = false;
+
+  // 1. Envío a API local si está en la misma red / localhost
   try {
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const res = await fetch(`${apiUrl}/api/v1/sync`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paquete),
     });
+    if (res.ok) exitoLocal = true;
+  } catch {
+    // Servidor local no alcanzable desde móvil remoto
+  }
 
-    if (res.ok) {
-      const data = await res.json();
-      return {
-        exitoServidor: true,
-        mensaje: data.mensaje || 'Relevamiento y fotografías sincronizados en la base de datos central.',
-        totalRespuestas: data.totalRespuestas || Object.keys(borrador.respuestas).length,
-        totalFotos: data.totalFotos || borrador.fotos.length,
-        syncedAt: data.syncedAt,
-      };
-    } else {
-      const errorJson = await res.json().catch(() => ({}));
-      return {
-        exitoServidor: false,
-        mensaje: 'Guardado localmente en IndexedDB. El servidor respondió con estado no disponible.',
-        totalRespuestas: Object.keys(borrador.respuestas).length,
-        totalFotos: borrador.fotos.length,
-        error: errorJson.error || `HTTP ${res.status}`,
-      };
-    }
-  } catch (err: any) {
+  // 2. Envío a Relay Cloud HTTPS para impacto en tiempo real desde celulares en campo (GitHub Pages -> Monitor)
+  try {
+    const resCloud = await fetch(CLOUD_RELAY_URL, {
+      method: 'POST',
+      body: JSON.stringify(borradorCompacto),
+    });
+    if (resCloud.ok) exitoCloud = true;
+  } catch {
+    // Sin conexión a internet
+  }
+
+  if (exitoLocal || exitoCloud) {
     return {
-      exitoServidor: false,
-      mensaje: 'Guardado de forma segura en IndexedDB (Modo Offline). Se enviará al servidor al reconectar.',
+      exitoServidor: true,
+      mensaje: 'Relevamiento sellado y sincronizado en tiempo real con el Monitor de Control FoDeMEEP RCU.',
       totalRespuestas: Object.keys(borrador.respuestas).length,
       totalFotos: borrador.fotos.length,
-      error: err.message,
+      syncedAt: new Date().toISOString(),
     };
   }
+
+  return {
+    exitoServidor: false,
+    mensaje: 'Guardado de forma segura en IndexedDB (Modo Offline). Se enviará al Monitor al reconectar.',
+    totalRespuestas: Object.keys(borrador.respuestas).length,
+    totalFotos: borrador.fotos.length,
+  };
 }

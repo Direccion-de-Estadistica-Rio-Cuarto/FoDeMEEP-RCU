@@ -304,6 +304,51 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
           </div>
         </div>
 
+        {/* Evidencias Fotográficas Adjuntas */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--texto-suave)' }}>
+              Evidencias Fotográficas Adjuntas ({borrador.fotos.length})
+            </h3>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: 'color-mix(in srgb, var(--marca) 12%, transparent)', color: 'var(--marca-enlace)' }}>
+              Registro In Situ
+            </span>
+          </div>
+
+          {borrador.fotos.length === 0 ? (
+            <div className="p-3.5 text-center text-xs rounded-xl border" style={{ borderColor: 'var(--borde)', color: 'var(--texto-suave)' }}>
+              No se adjuntaron fotografías en este relevamiento.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {borrador.fotos.map((foto) => (
+                <a
+                  key={foto.id}
+                  href={foto.dataUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-xl border overflow-hidden shadow-xs"
+                  style={{ borderColor: 'var(--borde)', backgroundColor: 'var(--fondo)' }}
+                >
+                  <img
+                    src={foto.dataUrl}
+                    alt={`Evidencia Sección ${foto.seccionId} - Pregunta ${foto.preguntaId}`}
+                    className="w-full h-28 object-cover"
+                  />
+                  <div className="p-2 text-[11px] leading-tight">
+                    <div className="font-bold" style={{ color: 'var(--texto)' }}>
+                      Sección {foto.seccionId} · Preg. #{foto.preguntaId}
+                    </div>
+                    <div style={{ color: 'var(--texto-suave)' }}>
+                      {new Date(foto.timestamp).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Validación de Campos Requeridos */}
         {faltantes.length > 0 && (
           <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 mb-4">

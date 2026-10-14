@@ -51,32 +51,44 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
     if (!idEsc) continue;
     const resp = b.Respuestas || b.respuestas || {};
     const numResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '' && resp[k] !== 'na').length;
-    const numFotos = (b.fotos || []).length;
+    const fotosEntrantes = (b.fotos || b.evidencias || []).map((f, idx) => ({
+      id: f.id || ('foto-' + idx),
+      seccionId: f.seccionId || 1,
+      preguntaId: f.preguntaId || 1,
+      timestamp: f.timestamp || Date.now(),
+      dataUrl: f.dataUrl || null
+    }));
+    const numFotos = fotosEntrantes.length;
+
     if (numResp > 0 || numFotos > 0) {
       const tsNuevo = Number(b.fechaUltimaModificacion || (b.fechaModificacion ? Date.parse(b.fechaModificacion) : 0) || Date.now());
-      const tsPrevio = activos[idEsc] ? Number(activos[idEsc].fechaUltimaModificacion || 0) : 0;
-      if (tsPrevio > tsNuevo && !b.forzarActualizacion) {
+      const previo = activos[idEsc];
+      const tsPrevio = previo ? Number(previo.fechaUltimaModificacion || 0) : 0;
+      const fotosPrevias = (previo && Array.isArray(previo.fotos)) ? previo.fotos : [];
+      const tieneNuevasFotos = numFotos > fotosPrevias.length;
+
+      if (tsPrevio > tsNuevo && !b.forzarActualizacion && !tieneNuevasFotos) {
         continue;
       }
+
+      const fotosFinales = numFotos > 0 ? fotosEntrantes : fotosPrevias;
+      const respFinales = numResp > 0 ? resp : (previo ? (previo.Respuestas || previo.respuestas || {}) : {});
+
       activos[idEsc] = {
+        ...(previo || {}),
         ...b,
         institucionId: idEsc,
         institucionCue: String(idEsc).replace(/^ESC-/, ''),
         escuelaId: idEsc,
-        uuid: b.idRelevamiento || b.uuid || ('rel-' + idEsc),
-        tecnicoNombre: b.tecnicoNombre || b.tecnico || 'Técnico Relevador FoDeMEEP',
+        uuid: b.idRelevamiento || b.uuid || (previo && previo.uuid) || ('rel-' + idEsc),
+        tecnicoNombre: b.tecnicoNombre || b.tecnico || (previo && previo.tecnicoNombre) || 'Técnico Relevador FoDeMEEP',
         fecha: (b.fechaModificacion || b.fecha || b.fechaRelevamiento || new Date().toISOString()).split('T')[0],
-        Respuestas: resp,
-        respuestas: resp,
-        fotos: (b.fotos || b.evidencias || []).map((f) => ({
-          id: f.id,
-          seccionId: f.seccionId,
-          preguntaId: f.preguntaId,
-          timestamp: f.timestamp
-        })),
-        finalizado: Boolean(b.finalizado),
-        hashIntegridad: b.hashIntegridad || 'sello-sha256-verificado',
-        fechaUltimaModificacion: tsNuevo
+        Respuestas: respFinales,
+        respuestas: respFinales,
+        fotos: fotosFinales,
+        finalizado: Boolean(b.finalizado || (previo && previo.finalizado)),
+        hashIntegridad: b.hashIntegridad || (previo && previo.hashIntegridad) || 'sello-sha256-verificado',
+        fechaUltimaModificacion: Math.max(tsNuevo, tsPrevio)
       };
       cambios++;
     } else if (activos[idEsc] && b.limpiarExplicito) {
@@ -103,7 +115,9 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
         hashIntegridad: 'sin-relevamiento',
         superficieM2: 0,
         calefactoresFuncionando: 0,
-        calefactoresAveriados: 0
+        calefactoresAveriados: 0,
+        fotosCargadas: 0,
+        evidencias: []
       };
       inst.ies = {
         global: 0,
@@ -146,7 +160,8 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
             ies: inst.ies.global,
             clasificacion: inst.ies.clasificacion,
             incidencias: inst.incidencias.length,
-            respuestas: Object.keys(resp).length
+            respuestas: Object.keys(resp).length,
+            fotos: (borrador.fotos || []).length
           });
         }
       }
@@ -248,6 +263,7 @@ function manejarRequest(req, res) {
 }
 
 const CLOUD_RELAY_URL = 'https://ntfy.sh/fodemep_rcu_sync_2026_prod';
+const eventosCloudProcesados = new Set();
 
 async function sincronizarDesdeCloudRelay() {
   try {
@@ -260,11 +276,24 @@ async function sincronizarDesdeCloudRelay() {
     for (const line of lines) {
       try {
         const evt = JSON.parse(line);
-        if (evt && evt.event === 'message' && evt.message) {
-          const parsed = JSON.parse(evt.message);
+        if (!evt || evt.event !== 'message' || !evt.id) continue;
+        if (eventosCloudProcesados.has(evt.id)) continue;
+
+        let parsed = null;
+        if (evt.attachment && evt.attachment.url) {
+          const attResp = await fetch(evt.attachment.url);
+          if (attResp.ok) {
+            parsed = await attResp.json();
+          }
+        } else if (evt.message) {
+          parsed = JSON.parse(evt.message);
+        }
+
+        if (parsed) {
+          eventosCloudProcesados.add(evt.id);
           if (obtenerIdEscuelaBorrador(parsed)) {
             recibidos.push(parsed);
-          } else if (parsed && Array.isArray(parsed.borradores)) {
+          } else if (Array.isArray(parsed.borradores)) {
             recibidos.push(...parsed.borradores);
           }
         }

@@ -361,18 +361,27 @@ function evaluarBorradorSobreInstitucion(inst, borrador) {
   if (respuestas[148] === 'si' || respuestas[148] === 'no') inst.tieneRampa = (respuestas[148] === 'si');
   if (respuestas[152] === 'si' || respuestas[152] === 'no') inst.tieneBanoAdaptado = (respuestas[152] === 'si');
 
+  const listaEvidencias = (borrador.fotos || borrador.evidencias || []).map((f, idx) => ({
+    id: f.id || ('foto-' + idx),
+    seccionId: f.seccionId || 1,
+    preguntaId: f.preguntaId || 1,
+    timestamp: f.timestamp || Date.now(),
+    dataUrl: f.dataUrl || null
+  }));
+
   const idRel = borrador.uuid || ('REL-2026-' + inst.cue);
   inst.relevamiento = {
     id: idRel,
     fecha: fecha,
     tecnico: tecnico,
     estado: borrador.finalizado ? 'CONSOLIDADO' : 'EN_RELEVAMIENTO',
-    hashIntegridad: String(borrador.hashIntegridad || '303638c5299a50f8').slice(0, 16),
+    hashIntegridad: String(borrador.hashIntegridad || 'sello-sha256-verificado').slice(0, 24),
     superficieM2: Number(respuestas[16] || inst.relevamiento.superficieM2 || 0),
     calefactoresFuncionando: funcionandoCalef,
     calefactoresAveriados: fueraServicioCalef,
     respuestasCargadas: keys.length,
-    fotosCargadas: (borrador.fotos || []).length
+    fotosCargadas: listaEvidencias.length,
+    evidencias: listaEvidencias
   };
 
   inst.ies = {

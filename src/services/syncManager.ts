@@ -173,6 +173,13 @@ export async function sincronizarConServidor(
     tecnicoNombre: borrador.tecnicoNombre || (borrador.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
     fecha: borrador.fecha || new Date().toISOString().split('T')[0],
     respuestas: borrador.respuestas,
+    fotos: (borrador.fotos || []).map((f) => ({
+      id: f.id,
+      seccionId: f.seccionId,
+      preguntaId: f.preguntaId,
+      timestamp: f.timestamp,
+      dataUrl: f.dataUrl,
+    })),
     finalizado: true,
     hashIntegridad: borrador.hashIntegridad,
     fechaUltimaModificacion: Date.now(),
@@ -196,10 +203,17 @@ export async function sincronizarConServidor(
 
   // 2. Envío a Relay Cloud HTTPS para impacto en tiempo real desde celulares en campo (GitHub Pages -> Monitor)
   try {
-    const resCloud = await fetch(CLOUD_RELAY_URL, {
-      method: 'POST',
-      body: JSON.stringify(borradorCompacto),
-    });
+    const bodyCloud = JSON.stringify(borradorCompacto);
+    const resCloud = bodyCloud.length > 3500
+      ? await fetch(CLOUD_RELAY_URL, {
+          method: 'PUT',
+          headers: { Filename: 'relevamiento.json' },
+          body: bodyCloud,
+        })
+      : await fetch(CLOUD_RELAY_URL, {
+          method: 'POST',
+          body: bodyCloud,
+        });
     if (resCloud.ok) exitoCloud = true;
   } catch {
     // Sin conexión a internet

@@ -190,11 +190,19 @@ const jsContent = `/* ==========================================================
         const tsNuevo = Number(b.fechaUltimaModificacion || (b.fechaModificacion ? Date.parse(b.fechaModificacion) : 0) || 0);
         const prev = ESTADO.borradoresActivos[inst.id];
         const tsPrev = prev ? Number(prev.fechaUltimaModificacion || (prev.fechaModificacion ? Date.parse(prev.fechaModificacion) : 0) || 0) : 0;
-        if (prev && tsPrev > tsNuevo && !b.forzarActualizacion) return;
+        const fotosNuevas = (b.fotos || b.evidencias || []);
+        const fotosPrevias = prev ? (prev.fotos || prev.evidencias || []) : (inst.relevamiento && inst.relevamiento.evidencias ? inst.relevamiento.evidencias : []);
+        const aportaFotos = fotosNuevas.length > fotosPrevias.length;
 
-        const aplicado = evaluarBorradorSobreInstitucion(inst, b);
+        if (prev && tsPrev > tsNuevo && !b.forzarActualizacion && !aportaFotos) return;
+
+        const borradorCombinado = Object.assign({}, prev || {}, b, {
+          fotos: fotosNuevas.length > 0 ? fotosNuevas : fotosPrevias
+        });
+
+        const aplicado = evaluarBorradorSobreInstitucion(inst, borradorCombinado);
         if (aplicado) {
-          ESTADO.borradoresActivos[inst.id] = b;
+          ESTADO.borradoresActivos[inst.id] = borradorCombinado;
           huboCambios = true;
           ultimaInstImpactada = inst;
         }
@@ -271,24 +279,33 @@ const jsContent = `/* ==========================================================
       }
     } catch (e) {}
 
-    // 4. Leer desde Relay Cloud HTTPS (para sincronización directa con celulares en campo)
+    // 4. Leer desde Relay Cloud HTTPS (para sincronización directa con celulares en campo, incluyendo fotos adjuntas)
     try {
       const respCloud = await fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod/json?poll=1&since=48h');
       if (respCloud.ok) {
         const textCloud = await respCloud.text();
         if (textCloud && textCloud.trim()) {
-          textCloud.trim().split(String.fromCharCode(10)).forEach(function (line) {
+          const lineas = textCloud.trim().split(String.fromCharCode(10));
+          for (let idxL = 0; idxL < lineas.length; idxL++) {
             try {
-              const evt = JSON.parse(line);
-              if (evt && evt.event === 'message' && evt.message) {
-                const parsed = JSON.parse(evt.message);
-                if (obtenerIdEscuelaBorrador(parsed)) recolectados.push(parsed);
-                else if (parsed && Array.isArray(parsed.borradores)) {
-                  parsed.borradores.forEach(function (x) { if (obtenerIdEscuelaBorrador(x)) recolectados.push(x); });
+              const evt = JSON.parse(lineas[idxL]);
+              if (evt && evt.event === 'message') {
+                let parsed = null;
+                if (evt.attachment && evt.attachment.url) {
+                  const attResp = await fetch(evt.attachment.url);
+                  if (attResp.ok) parsed = await attResp.json();
+                } else if (evt.message) {
+                  parsed = JSON.parse(evt.message);
+                }
+                if (parsed) {
+                  if (obtenerIdEscuelaBorrador(parsed)) recolectados.push(parsed);
+                  else if (Array.isArray(parsed.borradores)) {
+                    parsed.borradores.forEach(function (x) { if (obtenerIdEscuelaBorrador(x)) recolectados.push(x); });
+                  }
                 }
               }
             } catch (errLine) {}
-          });
+          }
         }
       }
     } catch (e) {}
@@ -341,14 +358,22 @@ const jsContent = `/* ==========================================================
       }
     });
 
-    // Suscripción SSE en tiempo real al Relay Cloud para recibir cierres desde iPhone/Android al instante
+    // Suscripción SSE en tiempo real al Relay Cloud para recibir cierres y fotos desde iPhone/Android al instante
     if (typeof EventSource !== 'undefined') {
       try {
         const sse = new EventSource('https://ntfy.sh/fodemep_rcu_sync_2026_prod/sse');
-        sse.onmessage = function (ev) {
+        sse.onmessage = async function (ev) {
           try {
             const parsed = JSON.parse(ev.data);
-            const payload = (parsed && parsed.message) ? JSON.parse(parsed.message) : parsed;
+            let payload = null;
+            if (parsed && parsed.attachment && parsed.attachment.url) {
+              const rAtt = await fetch(parsed.attachment.url);
+              if (rAtt.ok) payload = await rAtt.json();
+            } else if (parsed && parsed.message) {
+              payload = JSON.parse(parsed.message);
+            } else {
+              payload = parsed;
+            }
             if (obtenerIdEscuelaBorrador(payload)) {
               aplicarListaBorradores([payload], true);
             } else if (payload && Array.isArray(payload.borradores)) {
@@ -1127,6 +1152,14 @@ const jsContent = `/* ==========================================================
   }
 
   /* --- 3. Panel de Escuela Seleccionada en Mapa y Alertas Kill-Switch ------ */
+  function obtenerEvidenciasInstitucion(inst) {
+    if (!inst) return [];
+    const borradorVivo = ESTADO.borradoresActivos && ESTADO.borradoresActivos[inst.id];
+    const fotosVivo = borradorVivo ? (borradorVivo.fotos || borradorVivo.evidencias || []) : [];
+    const fotosInst = (inst.relevamiento && Array.isArray(inst.relevamiento.evidencias)) ? inst.relevamiento.evidencias : [];
+    return fotosVivo.length > 0 ? fotosVivo : fotosInst;
+  }
+
   function renderizarPanelSeleccionMapa(filtradas) {
     const panel = document.getElementById('panel-seleccion-mapa');
     if (!panel || !ESTADO.bbdd) return;
@@ -1141,6 +1174,25 @@ const jsContent = `/* ==========================================================
     const est = obtenerEstadoDinamicoInstitucion(inst);
     const incAbiertas = inst.incidencias.filter(function (inc) { return !ESTADO.simulacionResueltas[inc.id]; });
     const tieneProv = inst.incidencias.some(function (inc) { return inc.jurisdiccion === 'PROVINCIA_MAYOR'; });
+    const evidencias = obtenerEvidenciasInstitucion(inst);
+    const cantFotos = evidencias.length || (inst.relevamiento && inst.relevamiento.fotosCargadas) || 0;
+
+    let htmlMiniFotos = '';
+    const conImagen = evidencias.filter(function (f) { return Boolean(f && f.dataUrl); });
+    if (conImagen.length > 0) {
+      htmlMiniFotos =
+        '<div style="margin-bottom: 12px;">' +
+          '<div class="texto-chico texto-suave" style="margin-bottom: 6px;"><strong>Evidencias Fotográficas (' + conImagen.length + '):</strong></div>' +
+          '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px;">' +
+            conImagen.slice(0, 6).map(function (f) {
+              return '<a href="' + f.dataUrl + '" target="_blank" rel="noopener noreferrer" style="display: block; border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; text-decoration: none; background: var(--superficie);">' +
+                '<img src="' + f.dataUrl + '" alt="Evidencia fotográfica Sección ' + escapar(f.seccionId) + ' Pregunta ' + escapar(f.preguntaId) + '" style="width: 100%; height: 68px; object-fit: cover; display: block;">' +
+                '<div class="texto-chico" style="padding: 4px 6px; font-size: 10px; color: var(--texto);">Sec. ' + escapar(f.seccionId) + ' · P#' + escapar(f.preguntaId) + '</div>' +
+              '</a>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+    }
 
     panel.innerHTML =
       '<div class="cabecera-panel">' +
@@ -1151,6 +1203,9 @@ const jsContent = `/* ==========================================================
         '<span class="estado ' + claseEstadoDesdeTexto(est.clasificacion) + '">IES ' + est.global + '/100 · ' + escapar(est.clasificacion) + '</span>' +
       '</div>' +
       '<p class="nota">' + escapar(inst.domicilio) + ' · Nivel ' + escapar(inst.nivel) + ' (' + escapar(inst.modalidad) + ') · Matrícula: ' + formatearNumero(inst.matricula2025) + ' alumnos.</p>' +
+      (inst.relevamiento && inst.relevamiento.tecnico
+        ? '<p class="texto-chico" style="margin: 0 0 10px; color: var(--texto);"><strong>Auditor:</strong> ' + escapar(inst.relevamiento.tecnico) + ' · <strong>Fecha:</strong> ' + escapar(inst.relevamiento.fecha || '') + ' · <strong>Fotos:</strong> ' + cantFotos + '</p>'
+        : '') +
       (est.tieneKillSwitch
         ? '<div class="item-alerta-critica" style="margin-bottom: 10px;">' +
             '<div class="item-alerta-titulo">⚠️ Penalizador Kill-Switch Activo</div>' +
@@ -1165,9 +1220,10 @@ const jsContent = `/* ==========================================================
         '<span class="pill-dato">Incidencias activas: <strong>' + incAbiertas.length + '</strong></span>' +
         '<span class="pill-dato">Competencia: <strong>' + (tieneProv ? 'FoDeMEEP + Provincia' : 'FoDeMEEP') + '</strong></span>' +
       '</div>' +
+      htmlMiniFotos +
       '<button type="button" class="boton boton--primario boton--chico" id="btn-ir-trazabilidad-mapa" style="width: 100%;">' +
         '<span class="icono icono--chico" aria-hidden="true">timeline</span>' +
-        '<span>Abrir Trazabilidad Histórica y Simulador de Obra</span>' +
+        '<span>Abrir Trazabilidad, Fotos y Simulador de Obra</span>' +
       '</button>';
 
     const btnIr = document.getElementById('btn-ir-trazabilidad-mapa');
@@ -1222,15 +1278,17 @@ const jsContent = `/* ==========================================================
   function renderizarVistaTrazabilidad() {
     if (!ESTADO.bbdd) return;
     const selectEsc = document.getElementById('select-escuela-trazabilidad');
-    if (selectEsc && selectEsc.options.length === 0) {
+    if (selectEsc) {
       const ordenadas = ESTADO.bbdd.instituciones.slice().sort(function (a, b) {
+        const aRel = (a.ies && a.ies.clasificacion !== 'Sin relevar') ? 1 : 0;
+        const bRel = (b.ies && b.ies.clasificacion !== 'Sin relevar') ? 1 : 0;
+        if (aRel !== bRel) return bRel - aRel;
         return a.nombre.localeCompare(b.nombre, 'es');
       });
       selectEsc.innerHTML = ordenadas.map(function (i) {
-        return '<option value="' + i.id + '">' + escapar(i.nombre) + ' — CUE ' + escapar(i.cue) + ' (' + escapar(i.barrio) + ')</option>';
+        const prefijo = (i.ies && i.ies.clasificacion !== 'Sin relevar') ? '✓ [RELEVADA · IES ' + i.ies.global + '] ' : '';
+        return '<option value="' + i.id + '">' + prefijo + escapar(i.nombre) + ' — CUE ' + escapar(i.cue) + ' (' + escapar(i.barrio) + ')</option>';
       }).join('');
-    }
-    if (selectEsc) {
       selectEsc.value = ESTADO.escuelaSeleccionadaId;
     }
 
@@ -1238,6 +1296,8 @@ const jsContent = `/* ==========================================================
     if (!inst) return;
 
     const est = obtenerEstadoDinamicoInstitucion(inst);
+    const evidencias = obtenerEvidenciasInstitucion(inst);
+    const cantFotos = evidencias.length || (inst.relevamiento && inst.relevamiento.fotosCargadas) || 0;
 
     // 4.1 Cabecera Institucional
     const contCabecera = document.getElementById('ficha-cabecera-institucion');
@@ -1251,11 +1311,12 @@ const jsContent = `/* ==========================================================
             '<h4 class="titulo-l" style="margin-top: 6px;">' + escapar(inst.nombre) + '</h4>' +
             '<p class="texto-chico texto-suave" style="margin: 2px 0 0;">' + escapar(inst.domicilio) + ' · Barrio ' + escapar(inst.barrio) + ' (' + escapar(inst.macrozona) + ') · Turno: ' + escapar(inst.turno) + '</p>' +
             '<div class="ficha-meta-pills">' +
+              '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">person</span> Auditor: <strong>' + escapar(inst.relevamiento.tecnico || 'Sin asignar') + '</strong> (' + escapar(inst.relevamiento.fecha || 'Sin fecha') + ')</span>' +
+              '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">photo_camera</span> Evidencias fotográficas: <strong>' + cantFotos + ' foto(s)</strong></span>' +
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">school</span> Nivel: <strong>' + escapar(inst.nivel) + ' (' + escapar(inst.modalidad) + ')</strong></span>' +
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">groups</span> Matrícula 2025: <strong>' + formatearNumero(inst.matricula2025) + ' alumnos</strong> (' + inst.alumnosDiscapacidad + ' con CUD)</span>' +
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">accessible</span> Rampa: <strong>' + (inst.tieneRampa ? 'Sí' : 'No') + '</strong> · Baño Adaptado: <strong>' + (inst.tieneBanoAdaptado ? 'Sí' : 'No') + '</strong></span>' +
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">local_fire_department</span> Calefactores activos: <strong>' + inst.relevamiento.calefactoresFuncionando + '/' + (inst.relevamiento.calefactoresFuncionando + inst.relevamiento.calefactoresAveriados) + '</strong></span>' +
-              '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">square_foot</span> Superficie est.: <strong>' + formatearNumero(inst.relevamiento.superficieM2) + ' m²</strong></span>' +
             '</div>' +
           '</div>' +
           '<div class="bloque-score-ies">' +
@@ -1430,6 +1491,37 @@ const jsContent = `/* ==========================================================
             renderizarTodo();
           });
         });
+      }
+    }
+
+    // 4.5 Galería de Evidencias Fotográficas del Relevamiento en Campo
+    const contFotos = document.getElementById('galeria-fotos-escuela');
+    if (contFotos) {
+      const fotosConImg = evidencias.filter(function (f) { return Boolean(f && f.dataUrl); });
+      if (fotosConImg.length === 0) {
+        contFotos.innerHTML =
+          '<p class="nota">Aún no se recibieron archivos fotográficos sincronizados para este establecimiento. ' +
+          'Si el auditor capturó fotografías desde el celular antes de la última actualización, basta con abrir o recargar el formulario en el celular (o tocar <strong>«Confirmar y Cerrar Auditoría»</strong>) para que las fotografías se transmitan automáticamente a esta galería.</p>';
+      } else {
+        contFotos.innerHTML =
+          '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 8px;">' +
+            fotosConImg.map(function (f) {
+              const fechaHora = f.timestamp ? new Date(f.timestamp).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+              return '<div class="panel panel--interno" style="padding: 10px; display: flex; flex-direction: column; gap: 8px;">' +
+                '<a href="' + f.dataUrl + '" target="_blank" rel="noopener noreferrer" style="display: block; border-radius: 8px; overflow: hidden; border: 1px solid var(--borde);">' +
+                  '<img src="' + f.dataUrl + '" alt="Evidencia fotográfica Sección ' + escapar(f.seccionId) + ' Pregunta ' + escapar(f.preguntaId) + '" style="width: 100%; height: 160px; object-fit: cover; display: block;">' +
+                '</a>' +
+                '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                  '<span class="estado estado--optimo">Sección ' + escapar(f.seccionId) + ' · Pregunta #' + escapar(f.preguntaId) + '</span>' +
+                  '<span class="texto-chico texto-suave">' + escapar(fechaHora) + '</span>' +
+                '</div>' +
+                '<a href="' + f.dataUrl + '" download="evidencia_' + escapar(inst.cue) + '_sec' + escapar(f.seccionId) + '_p' + escapar(f.preguntaId) + '.jpg" class="boton boton--secundario boton--chico" style="text-align: center; text-decoration: none;">' +
+                  '<span class="icono icono--chico" aria-hidden="true">download</span>' +
+                  '<span>Descargar Fotografía</span>' +
+                '</a>' +
+              '</div>';
+            }).join('') +
+          '</div>';
       }
     }
   }

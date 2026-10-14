@@ -42,6 +42,13 @@ function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[]): void 
     tecnicoNombre: b.tecnicoNombre || (b.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
     fecha: b.fecha,
     respuestas: b.respuestas,
+    fotos: (b.fotos || []).map((f) => ({
+      id: f.id,
+      seccionId: f.seccionId,
+      preguntaId: f.preguntaId,
+      timestamp: f.timestamp,
+      dataUrl: f.dataUrl,
+    })),
     finalizado: b.finalizado,
     hashIntegridad: b.hashIntegridad,
     fechaUltimaModificacion: b.fechaUltimaModificacion || Date.now(),
@@ -52,9 +59,18 @@ function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[]): void 
   if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5505') {
     fetch('http://localhost:5505/api/relevamientos-vivos', { method: 'POST', headers, body: payload }).catch(() => {});
   }
-  const finalizados = compactos.filter((b) => b.finalizado);
-  if (finalizados.length > 0) {
-    fetch(CLOUD_RELAY_URL, { method: 'POST', body: JSON.stringify({ borradores: finalizados }) }).catch(() => {});
+  const paraNube = compactos.filter((b) => b.finalizado || (b.fotos && b.fotos.length > 0));
+  if (paraNube.length > 0) {
+    const bodyNube = JSON.stringify({ borradores: paraNube });
+    if (bodyNube.length > 3500) {
+      fetch(CLOUD_RELAY_URL, {
+        method: 'PUT',
+        headers: { Filename: 'relevamiento.json' },
+        body: bodyNube,
+      }).catch(() => {});
+    } else {
+      fetch(CLOUD_RELAY_URL, { method: 'POST', body: bodyNube }).catch(() => {});
+    }
   }
 }
 

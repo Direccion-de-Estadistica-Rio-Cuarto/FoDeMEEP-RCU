@@ -5,6 +5,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/FoDeMEEP-RCU/' : '/',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

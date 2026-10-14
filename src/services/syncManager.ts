@@ -138,8 +138,69 @@ export function generarPaqueteExportacion(
         seccionId: f.seccionId,
         preguntaId: f.preguntaId,
         timestamp: f.timestamp,
+        dataUrl: f.dataUrl,
         tamanoAproxBytes: f.dataUrl.length,
       })),
     },
   };
+}
+
+/**
+ * Envía el relevamiento completo con sus respuestas y evidencias fotográficas
+ * a la API del servidor municipal. Si el dispositivo no tiene conexión o el
+ * servidor está offline, se preserva en la cola local de IndexedDB.
+ */
+export async function sincronizarConServidor(
+  borrador: RelevamientoBorrador,
+  cue: string = '000000000',
+  nombreEscuela: string = 'Establecimiento'
+): Promise<{
+  exitoServidor: boolean;
+  mensaje: string;
+  totalRespuestas: number;
+  totalFotos: number;
+  syncedAt?: string;
+  error?: string;
+}> {
+  const paquete = generarPaqueteExportacion(borrador, cue, nombreEscuela);
+
+  // Intentar envío HTTP al endpoint /api/v1/sync
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${apiUrl}/api/v1/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(paquete),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        exitoServidor: true,
+        mensaje: data.mensaje || 'Relevamiento y fotografías sincronizados en la base de datos central.',
+        totalRespuestas: data.totalRespuestas || Object.keys(borrador.respuestas).length,
+        totalFotos: data.totalFotos || borrador.fotos.length,
+        syncedAt: data.syncedAt,
+      };
+    } else {
+      const errorJson = await res.json().catch(() => ({}));
+      return {
+        exitoServidor: false,
+        mensaje: 'Guardado localmente en IndexedDB. El servidor respondió con estado no disponible.',
+        totalRespuestas: Object.keys(borrador.respuestas).length,
+        totalFotos: borrador.fotos.length,
+        error: errorJson.error || `HTTP ${res.status}`,
+      };
+    }
+  } catch (err: any) {
+    return {
+      exitoServidor: false,
+      mensaje: 'Guardado de forma segura en IndexedDB (Modo Offline). Se enviará al servidor al reconectar.',
+      totalRespuestas: Object.keys(borrador.respuestas).length,
+      totalFotos: borrador.fotos.length,
+      error: err.message,
+    };
+  }
 }

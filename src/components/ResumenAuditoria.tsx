@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import type { Escuela, RelevamientoBorrador, ResultadoIndice } from '../types/fodemep';
 import { SECCIONES_RELEVAMIENTO } from '../data/preguntasRelevamiento';
 import { Icono } from './Icono';
-import { prepararYEncolarParaSync, generarPaqueteExportacion } from '../services/syncManager';
+import {
+  prepararYEncolarParaSync,
+  generarPaqueteExportacion,
+  sincronizarConServidor,
+} from '../services/syncManager';
 
 interface ResumenAuditoriaProps {
   escuela: Escuela;
@@ -23,6 +27,14 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
     (borrador.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP'
   );
   const [cerradoExitoso, setCerradoExitoso] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
+  const [resultadoSync, setResultadoSync] = useState<{
+    exitoServidor: boolean;
+    mensaje: string;
+    totalRespuestas: number;
+    totalFotos: number;
+    syncedAt?: string;
+  } | null>(null);
 
   const preguntasRequeridas = SECCIONES_RELEVAMIENTO.flatMap((s) =>
     s.preguntas.filter((p) => p.requerido)
@@ -45,13 +57,27 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
   };
 
   const handleFinalizar = async () => {
+    setSincronizando(true);
     try {
+      // 1. Persistir y sellar localmente en IndexedDB
       await prepararYEncolarParaSync(borrador);
-    } catch (err) {
+
+      // 2. Intentar transmisión a la base de datos central
+      const resServidor = await sincronizarConServidor(borrador, escuela.cue, escuela.nombre);
+      setResultadoSync(resServidor);
+    } catch (err: any) {
       console.warn('Registro en cola de sincronización:', err);
+      setResultadoSync({
+        exitoServidor: false,
+        mensaje: 'Guardado de forma segura en el almacenamiento local del dispositivo (IndexedDB).',
+        totalRespuestas: Object.keys(borrador.respuestas).length,
+        totalFotos: borrador.fotos.length,
+      });
+    } finally {
+      setSincronizando(false);
+      onConfirmarCierre();
+      setCerradoExitoso(true);
     }
-    onConfirmarCierre();
-    setCerradoExitoso(true);
   };
 
   return (
@@ -303,26 +329,75 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
 
         <button
           onClick={handleFinalizar}
-          className="boton boton--primario boton--grande cursor-pointer shadow-md"
+          disabled={sincronizando}
+          className="boton boton--primario boton--grande cursor-pointer shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          <Icono name="check_circle" size={20} />
-          <span>Confirmar y Cerrar Auditoría</span>
+          <Icono
+            name={sincronizando ? "sync" : "check_circle"}
+            size={20}
+            className={sincronizando ? "animate-spin" : ""}
+          />
+          <span>{sincronizando ? 'Sincronizando con Servidor...' : 'Confirmar y Cerrar Auditoría'}</span>
         </button>
       </div>
 
-      {/* Modal de Cierre Exitoso */}
+      {/* Modal de Cierre Exitoso y Estado de Sincronización */}
       {cerradoExitoso && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="panel max-w-sm w-full p-6 text-center shadow-2xl">
-            <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Icono name="check_circle" size={32} />
+            <div
+              className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                resultadoSync?.exitoServidor
+                  ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600'
+                  : 'bg-sky-100 dark:bg-sky-950 text-sky-600'
+              }`}
+            >
+              <Icono
+                name={resultadoSync?.exitoServidor ? "cloud_done" : "phonelink_ring"}
+                size={32}
+              />
             </div>
+
             <h3 className="text-lg font-bold" style={{ color: 'var(--texto)' }}>
-              ¡Relevamiento Consolidado!
+              {resultadoSync?.exitoServidor
+                ? '¡Sincronizado en la Base de Datos!'
+                : '¡Guardado Seguro en el Dispositivo!'}
             </h3>
-            <p className="text-xs mt-1 mb-4" style={{ color: 'var(--texto-suave)' }}>
-              El estado de la institución ha sido registrado en el almacenamiento local y está listo para sincronizar con el Monitor de Río Cuarto.
+
+            <p className="text-xs mt-1.5 mb-3" style={{ color: 'var(--texto-suave)' }}>
+              {resultadoSync?.mensaje || 'El relevamiento técnico y sus evidencias fotográficas han sido asegurados.'}
             </p>
+
+            {/* Resumen cuantitativo del expediente */}
+            <div
+              className="p-3 rounded-xl border mb-4 text-xs flex justify-around"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--fondo) 80%, var(--superficie))',
+                borderColor: 'var(--borde)',
+              }}
+            >
+              <div>
+                <span className="block font-bold text-sm" style={{ color: 'var(--marca-enlace)' }}>
+                  {Object.keys(borrador.respuestas).length}
+                </span>
+                <span className="text-[10px]" style={{ color: 'var(--texto-suave)' }}>Respuestas</span>
+              </div>
+              <div className="w-px bg-slate-200 dark:bg-slate-700" />
+              <div>
+                <span className="block font-bold text-sm" style={{ color: 'var(--marca-enlace)' }}>
+                  {borrador.fotos.length}
+                </span>
+                <span className="text-[10px]" style={{ color: 'var(--texto-suave)' }}>Fotos Adjuntas</span>
+              </div>
+              <div className="w-px bg-slate-200 dark:bg-slate-700" />
+              <div>
+                <span className="block font-bold text-sm" style={{ color: 'var(--ok)' }}>
+                  {resultadoIndice.global} pts
+                </span>
+                <span className="text-[10px]" style={{ color: 'var(--texto-suave)' }}>Índice IES</span>
+              </div>
+            </div>
+
             <button
               onClick={() => {
                 setCerradoExitoso(false);

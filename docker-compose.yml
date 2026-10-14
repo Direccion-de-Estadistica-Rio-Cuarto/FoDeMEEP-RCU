@@ -1,0 +1,42 @@
+services:
+  # 1. Base de Datos Relacional PostgreSQL 16
+  fodemep-db:
+    image: postgres:16-alpine
+    container_name: fodemep-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: fodemep_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - fodemep_pgdata:/var/lib/postgresql/data
+      - ./supabase/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./supabase/seed_completo_publicas.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fodemep_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Servidor Backend API REST
+  fodemep-api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: fodemep-api
+    restart: always
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgrespassword@fodemep-db:5432/fodemep_db
+    ports:
+      - "3001:3001"
+    depends_on:
+      fodemep-db:
+        condition: service_healthy
+
+volumes:
+  fodemep_pgdata:
+    driver: local

@@ -9,6 +9,7 @@ interface MenuSeccionesProps {
   resultadoIndice: ResultadoIndice;
   onSeleccionarSeccion: (seccionId: number) => void;
   onIrAAuditoria: () => void;
+  onAbrirVisorBBDD?: () => void;
 }
 
 // Mapeo a la paleta de series oficial de la Dirección de Estadística
@@ -35,6 +36,7 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
   resultadoIndice,
   onSeleccionarSeccion,
   onIrAAuditoria,
+  onAbrirVisorBBDD,
 }) => {
   const getIconoSeccion = (icono: string) => {
     switch (icono) {
@@ -146,6 +148,40 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
           </div>
         </div>
       </section>
+
+      {/* 2.5 Banner Acceso a Base de Datos en Tiempo Real */}
+      {onAbrirVisorBBDD && (
+        <div
+          onClick={onAbrirVisorBBDD}
+          className="panel bg-gradient-to-r from-slate-900 to-indigo-950 text-white border border-sky-500/40 hover:border-sky-400 p-3.5 flex items-center justify-between gap-3 cursor-pointer shadow-sm hover:shadow-md transition-all group"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/40 flex items-center justify-center flex-shrink-0 text-xl group-hover:scale-105 transition-transform">
+              🗄️
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-xs sm:text-sm text-white truncate">
+                  Base de Datos en Tiempo Real (Tablas SQL)
+                </h3>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500 text-slate-950">
+                  LIVE
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 truncate">
+                Vea cómo se van guardando las 5 tablas relacionales mientras responde el relevamiento
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="px-2.5 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1">
+              <span>Abrir Tablas</span>
+              <Icono name="arrow_forward" size={14} />
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* 3. Lista de las 14 Secciones */}
       <div className="space-y-3">

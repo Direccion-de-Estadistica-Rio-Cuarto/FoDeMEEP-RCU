@@ -7,6 +7,7 @@ import { MenuSecciones } from './components/MenuSecciones';
 import { SeccionDetalle } from './components/SeccionDetalle';
 import { ResumenAuditoria } from './components/ResumenAuditoria';
 import { ModalSelectorEscuela } from './components/ModalSelectorEscuela';
+import { ModalVisorBBDD } from './components/ModalVisorBBDD';
 import { calcularIndiceInstitucional } from './services/engineIndice';
 import {
   guardarBorradorEnStorage,
@@ -22,6 +23,7 @@ export function App() {
   const [vista, setVista] = useState<'menu' | 'seccion' | 'auditoria'>('menu');
   const [seccionActivaId, setSeccionActivaId] = useState<number>(1);
   const [mostrarSelectorEscuela, setMostrarSelectorEscuela] = useState(false);
+  const [mostrarVisorBBDD, setMostrarVisorBBDD] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Escuchar estado de conectividad en el teléfono
@@ -123,6 +125,30 @@ export function App() {
     }
   };
 
+  // Cargar simulación completa con evidencia fotográfica
+  const handleCargarSimulacion = (simulacion: RelevamientoBorrador) => {
+    const esc = ESCUELAS_RIO_CUARTO.find((e) => e.id === simulacion.escuelaId) || ESCUELAS_RIO_CUARTO[0];
+    setEscuelaActual(esc);
+    setBorrador(simulacion);
+    guardarBorradorEnStorage(simulacion);
+  };
+
+  // Limpiar datos y resetear a cero
+  const handleLimpiarDatos = () => {
+    const limpio: RelevamientoBorrador = {
+      escuelaId: escuelaActual.id,
+      tecnicoNombre: 'Técnico Relevador FoDeMEEP',
+      fecha: new Date().toISOString().split('T')[0],
+      respuestas: {},
+      fotos: [],
+      seccionesCompletas: [],
+      fechaUltimaModificacion: Date.now(),
+      finalizado: false,
+    };
+    setBorrador(limpio);
+    guardarBorradorEnStorage(limpio);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans select-none antialiased">
       {/* Cabecera Móvil Fija */}
@@ -136,6 +162,7 @@ export function App() {
           setVista('menu');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+        onAbrirVisorBBDD={() => setMostrarVisorBBDD(true)}
       />
 
       <main className="flex-1">
@@ -154,6 +181,7 @@ export function App() {
               setVista('auditoria');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
+            onAbrirVisorBBDD={() => setMostrarVisorBBDD(true)}
           />
         )}
 
@@ -232,6 +260,18 @@ export function App() {
           escuelaActualId={escuelaActual.id}
           onSeleccionar={handleCambiarEscuela}
           onCerrar={() => setMostrarSelectorEscuela(false)}
+        />
+      )}
+
+      {/* Modal Visor de Base de Datos en Tiempo Real */}
+      {mostrarVisorBBDD && (
+        <ModalVisorBBDD
+          escuela={escuelaActual}
+          borrador={borrador}
+          resultadoIndice={resultadoIndice}
+          onCargarSimulacion={handleCargarSimulacion}
+          onLimpiarDatos={handleLimpiarDatos}
+          onCerrar={() => setMostrarVisorBBDD(false)}
         />
       )}
     </div>

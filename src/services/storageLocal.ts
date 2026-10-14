@@ -38,6 +38,17 @@ export function guardarBorradorEnStorage(borrador: RelevamientoBorrador): void {
     const key = `${STORAGE_PREFIX}${borrador.escuelaId}`;
     localStorage.setItem(key, JSON.stringify(borrador));
 
+    // Notificación en vivo inter-pestañas / monitor de base de datos
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        const canal = new BroadcastChannel('fodemep_live_channel');
+        canal.postMessage({ borrador });
+        canal.close();
+      } catch (bcErr) {
+        // Ignorar si el navegador bloquea canales
+      }
+    }
+
     // Réplica asincrónica en IndexedDB (sin bloquear el hilo de la UI)
     guardarRelevamientoIDB(borrador).catch((err) => {
       console.warn('Aviso: guardado en IndexedDB:', err);

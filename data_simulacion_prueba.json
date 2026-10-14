@@ -1,0 +1,233 @@
+{
+  "institucion": {
+    "id": "ESC-140088000",
+    "cue": "140088000",
+    "nombre": "J. DE INF. LEOPOLDO LUGONES",
+    "nivel": "Inicial",
+    "modalidad": "COMUN",
+    "sector": "PUBLICO",
+    "ambito": "URBANO",
+    "domicilio": "Fray Quirico Porreca 1320",
+    "barrio": "Las Delicias",
+    "localidad": "Río Cuarto",
+    "departamento": "Río Cuarto",
+    "latitud": -33.1212042,
+    "longitud": -64.3234187,
+    "matricula": 145,
+    "directivo": "Prof. Silvia Mansilla",
+    "telefono": "0358-4672911",
+    "email": "jinf_lugones_rcu@cba.gov.ar"
+  },
+  "relevamiento": {
+    "id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+    "institucion_id": "ESC-140088000",
+    "inspector_id": "d9e03a11-8842-4f1a-b615-1849a26f7431",
+    "inspector_nombre": "Arq. Martín Gómez",
+    "fecha_relevamiento": "2026-10-14T09:15:00.000Z",
+    "indice_ies_total": 88,
+    "estado_semaforo": "OPTIMO",
+    "subindices": {
+      "seguridadCritica": {
+        "puntaje": 92,
+        "ponderacion": 0.25,
+        "estado": "Excelente"
+      },
+      "aguaSaneamiento": {
+        "puntaje": 95,
+        "ponderacion": 0.2,
+        "estado": "Excelente"
+      },
+      "estructuraCubiertas": {
+        "puntaje": 74,
+        "ponderacion": 0.18,
+        "estado": "Bueno"
+      },
+      "climatizacion": {
+        "puntaje": 80,
+        "ponderacion": 0.15,
+        "estado": "Bueno"
+      },
+      "alimentacionCocina": {
+        "puntaje": 100,
+        "ponderacion": 0.1,
+        "estado": "Excelente"
+      },
+      "accesibilidad": {
+        "puntaje": 90,
+        "ponderacion": 0.07,
+        "estado": "Excelente"
+      },
+      "entornoExterior": {
+        "puntaje": 90,
+        "ponderacion": 0.05,
+        "estado": "Excelente"
+      }
+    },
+    "hash_integridad": "303638c5299a50f8d7dece2d0eae2308cefddbaa3dee6a78250d791014c30a28",
+    "geolocalizacion": {
+      "latitud": -33.1212015,
+      "longitud": -64.323419,
+      "precisionMetros": 3.2,
+      "timestamp": 1791969300000
+    },
+    "estado": "COMPLETADO_CONSOLIDADO"
+  },
+  "respuestas": {
+    "1": "J. DE INF. LEOPOLDO LUGONES - CUE: 140088000",
+    "2": "Prof. Silvia Mansilla",
+    "3": "Arq. Martín Gómez (Legajo #4892)",
+    "4": "14/10/2026",
+    "5": "0358-4672911",
+    "6": "jinf_lugones_rcu@cba.gov.ar",
+    "7": 8,
+    "8": 4,
+    "9": "si",
+    "10": 4,
+    "15": "ant_2",
+    "16": 420,
+    "18": 145,
+    "23": "bue",
+    "25": "no",
+    "27": "reg",
+    "28": "no",
+    "30": "reg",
+    "32": "si",
+    "34": "no",
+    "36": "bue",
+    "38": 0,
+    "39": "bue",
+    "42": "gn",
+    "43": "si",
+    "45": "bue",
+    "47": "no",
+    "49": "si",
+    "52": "si",
+    "55": "si",
+    "57": "bue",
+    "59": "si",
+    "61": "si",
+    "63": "no",
+    "66": 5,
+    "69": 1,
+    "72": "si",
+    "74": "bue",
+    "76": "si",
+    "78": "bue",
+    "80": "no",
+    "90": 4,
+    "92": "si",
+    "94": "si",
+    "96": "si",
+    "105": "si",
+    "107": "bue",
+    "109": "si",
+    "120": "si",
+    "122": "si",
+    "124": "si",
+    "135": "bue",
+    "137": "no"
+  },
+  "evidencias": [
+    {
+      "id": "7b804e22-3ac8-4395-97e3-0d322b82ea55",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "seccion_id": 3,
+      "pregunta_id": 32,
+      "incidencia_id": "f1a92e10-4491-49b8-a762-b912c98031a1",
+      "url_almacenamiento": "s3://fodemep-storage/2026/10/ESC-140088000/b8f2c140-5e39-4d82-841f-7b792e310048/evidencia_cubierta_sum_32.png",
+      "nombre_archivo": "captura_simulacion_inspeccion_iphone.png",
+      "formato": "image/png",
+      "peso_bytes": 72435,
+      "sha256": "ae837ea098c7abcfca4c29bbd15f580e5fb21058cca542a32aeb3a405c4f5643",
+      "latitud": -33.1212015,
+      "longitud": -64.323419,
+      "es_critica": false,
+      "nota_inspector": "Captura in situ del estado de filtraciones y desprendimiento superficial en sector de cubierta del jardín."
+    }
+  ],
+  "incidencias": [
+    {
+      "id": "f1a92e10-4491-49b8-a762-b912c98031a1",
+      "institucion_id": "ESC-140088000",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "tipo_codigo": "FILTRACIONES",
+      "seccion_id": 3,
+      "pregunta_id": 32,
+      "titulo": "Filtración pluvial en losa de SUM hacia sector norte",
+      "descripcion": "Se detecta mancha de humedad activa con microgotera en cielo raso de yeso tras precipitaciones recientes. Requiere sellado e impermeabilización de junta de dilatación en cubierta.",
+      "severidad": "MEDIA",
+      "jurisdiccion": "FODEMEP",
+      "estado": "REPORTADA",
+      "costo_estimado": 185000,
+      "evidencia_asociada": true
+    },
+    {
+      "id": "c2834b67-1290-48ee-89a1-5582f3a88204",
+      "institucion_id": "ESC-140088000",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "tipo_codigo": "REPARACION/MANTENIMIENTO DE ARTEFACTOS",
+      "seccion_id": 6,
+      "pregunta_id": 69,
+      "titulo": "Calefactor tiro balanceado fuera de servicio en Sala 4 años",
+      "descripcion": "Artefacto calefactor presenta falla en termocupla y piloto inestable. No hay fuga de gas, pero no mantiene encendido. Requiere service técnico gasista matriculado.",
+      "severidad": "LEVE",
+      "jurisdiccion": "FODEMEP",
+      "estado": "REPORTADA",
+      "costo_estimado": 45000,
+      "evidencia_asociada": false
+    },
+    {
+      "id": "e7192a04-5120-410a-8bf8-d45089fa0821",
+      "institucion_id": "ESC-140088000",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "tipo_codigo": "PINTURA",
+      "seccion_id": 3,
+      "pregunta_id": 27,
+      "titulo": "Deterioro superficial de pintura y salitre en zócalos de pasillo",
+      "descripcion": "Desprendimiento localizado de pintura al látex en muros interiores por humedad de condensación invernal previa.",
+      "severidad": "LEVE",
+      "jurisdiccion": "FODEMEP",
+      "estado": "REPORTADA",
+      "costo_estimado": 95000,
+      "evidencia_asociada": false
+    }
+  ],
+  "auditoria": [
+    {
+      "id": "a01-921",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "timestamp": "2026-10-14T09:15:00.000Z",
+      "estado_anterior": "BORRADOR_LOCAL",
+      "estado_nuevo": "EN_PROCESO",
+      "operado_por": "Arq. Martín Gómez (Inspector)",
+      "detalle": "Inicio de relevamiento técnico in situ con geocerca verificada (-33.12120, -64.32341)."
+    },
+    {
+      "id": "a02-922",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "timestamp": "2026-10-14T09:42:15.000Z",
+      "estado_anterior": "EN_PROCESO",
+      "estado_nuevo": "EN_PROCESO",
+      "operado_por": "Arq. Martín Gómez (Inspector)",
+      "detalle": "Captura y adjunción de evidencia fotográfica (#32: Techos, 72.4 KB) con sellado criptográfico."
+    },
+    {
+      "id": "a03-923",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "timestamp": "2026-10-14T10:05:30.000Z",
+      "estado_anterior": "EN_PROCESO",
+      "estado_nuevo": "COMPLETADO_CONSOLIDADO",
+      "operado_por": "Arq. Martín Gómez (Inspector)",
+      "detalle": "Cierre del relevamiento. Cálculo IES total: 88/100 (OPTIMO). Generación de sello SHA-256: 303638c5299a50f8..."
+    },
+    {
+      "id": "a04-924",
+      "relevamiento_id": "b8f2c140-5e39-4d82-841f-7b792e310048",
+      "timestamp": "2026-10-14T10:05:32.000Z",
+      "estado_anterior": "COMPLETADO_CONSOLIDADO",
+      "estado_nuevo": "SINCRONIZADO_POSTGRES",
+      "operado_por": "Worker Background Sync (FoDeMEEP Engine)",
+      "detalle": "Transmisión exitosa a la base de datos central PostgreSQL. Transacción ACID commit."
+    }
+  ]
+}

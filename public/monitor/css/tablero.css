@@ -1,0 +1,793 @@
+/* ==========================================================================
+   tablero.css — Estilos propios del Monitor de Control del Programa FoDeMEEP RCU.
+   Usa exclusivamente los tokens de css/tokens.css y extiende css/base.css y
+   css/componentes.css respetando WCAG 2.1 AA en modo claro y oscuro.
+   ========================================================================== */
+
+/* --- Cabecera de Introducción y Acciones ---------------------------------- */
+
+.intro-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.intro-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* --- Barra de Filtros Globales y Demarcación Rápida ----------------------- */
+
+.barra-filtros {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+}
+
+.filtros-superiores {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.grupo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.etiqueta-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  margin-right: 4px;
+}
+
+.filtros-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.campo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campo-filtro--busqueda {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .campo-filtro--busqueda {
+    grid-column: span 1;
+  }
+}
+
+.campo-filtro--boton {
+  display: flex;
+  align-items: flex-end;
+}
+
+.campo-filtro label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.control-select,
+.control-input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--texto);
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-height: 36px;
+}
+
+.control-select--destacado {
+  font-weight: 600;
+  border-color: var(--marca);
+  background: var(--superficie);
+}
+
+.control-select:focus-visible,
+.control-input:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 1px;
+}
+
+.input-icono {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icono .icono {
+  position: absolute;
+  left: 9px;
+  color: var(--texto-suave);
+  pointer-events: none;
+}
+
+.input-icono .control-input {
+  padding-left: 32px;
+}
+
+/* --- Navegación por Módulos (Pestañas) ------------------------------------ */
+
+.navegacion-vistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--borde);
+  padding-bottom: 8px;
+}
+
+.tab-vista {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  background: var(--superficie);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.tab-vista:hover {
+  background: color-mix(in srgb, var(--marca) 10%, var(--superficie));
+}
+
+.tab-vista:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+}
+
+.tab-vista.activa {
+  background: var(--marca);
+  color: var(--marca-texto);
+  border-color: var(--marca);
+}
+
+/* --- Disposición de Grillas y Paneles ------------------------------------- */
+
+.grilla--mapa {
+  grid-template-columns: 1.55fr 1fr;
+  align-items: start;
+}
+
+.grilla--dos-columnas {
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .grilla--mapa {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columna-lateral-mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel--interno {
+  background: color-mix(in srgb, var(--fondo) 55%, var(--superficie));
+}
+
+.panel--interno h4 {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+}
+
+.panel--borde-marca {
+  border-top: 4px solid var(--marca);
+}
+
+.panel--borde-alerta {
+  border-top: 4px solid var(--grave);
+}
+
+.cabecera-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cabecera-panel .nota {
+  margin-bottom: 0;
+}
+
+/* --- Estado adicional "Óptimo" (Celeste institucional) -------------------- */
+
+.estado--optimo {
+  --color-estado: var(--serie-1);
+  background: color-mix(in srgb, var(--serie-1) 16%, transparent);
+}
+
+/* --- Mapa Geoespacial SVG de Río Cuarto ----------------------------------- */
+
+.controles-mapa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.grupo-modo-mapa,
+.grupo-zoom {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.leyenda-mapa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  background: var(--fondo);
+  border-radius: 8px;
+  border: 1px solid var(--borde);
+  font-size: 0.78rem;
+}
+
+.item-leyenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.punto-leyenda {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.punto--optimo {
+  background: var(--serie-1);
+}
+
+.punto--bueno {
+  background: var(--ok);
+}
+
+.punto--regular {
+  background: var(--alerta);
+}
+
+.punto--critico {
+  background: var(--grave);
+}
+
+.punto--provincia {
+  background: var(--serie-5);
+}
+
+.contenedor-svg-mapa {
+  position: relative;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  background: var(--fondo);
+  overflow: hidden;
+  user-select: none;
+}
+
+#svg-mapa-rcu {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 520px;
+  cursor: grab;
+  touch-action: none;
+}
+
+#svg-mapa-rcu.arrastrando {
+  cursor: grabbing;
+}
+
+:root[data-tema="oscuro"] #svg-mapa-rcu .capa-teselas-argenmap {
+  filter: invert(0.88) hue-rotate(180deg) brightness(0.92) contrast(1.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) #svg-mapa-rcu .capa-teselas-argenmap {
+    filter: invert(0.88) hue-rotate(180deg) brightness(0.92) contrast(1.05);
+  }
+}
+
+.atribucion-argenmap {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  z-index: 10;
+  background: color-mix(in srgb, var(--superficie) 88%, transparent);
+  color: var(--texto-suave);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+.poligono-barrio-rcu {
+  cursor: pointer;
+  transition: fill-opacity 0.15s ease, stroke-width 0.15s ease;
+}
+
+.poligono-barrio-rcu:hover {
+  fill-opacity: 0.36;
+  stroke: var(--marca);
+  stroke-width: 2.2;
+}
+
+.poligono-barrio-rcu.barrio-activo {
+  fill-opacity: 0.38;
+  stroke: var(--texto);
+  stroke-width: 2.6;
+}
+
+.etiqueta-barrio-rcu {
+  pointer-events: none;
+  user-select: none;
+}
+
+.nodo-escuela {
+  cursor: pointer;
+}
+
+.nodo-escuela:focus-visible {
+  outline: 2px solid var(--texto);
+}
+
+.tooltip-mapa {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  max-width: 280px;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--texto) 18%, transparent);
+}
+
+.resumen-zonas-mapa {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tarjeta-zona-mini {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  font: inherit;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.tarjeta-zona-mini:hover {
+  border-color: var(--marca);
+}
+
+.tarjeta-zona-mini .zona-nombre {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  display: block;
+}
+
+.tarjeta-zona-mini .zona-metricas {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 3px;
+}
+
+.tarjeta-zona-mini .zona-ies {
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Panel de Alertas Críticas (Kill-Switches) ---------------------------- */
+
+.lista-alertas-criticas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.item-alerta-critica {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--grave) 40%, var(--borde));
+  border-left: 4px solid var(--grave);
+  background: color-mix(in srgb, var(--grave) 7%, var(--superficie));
+}
+
+.item-alerta-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.item-alerta-titulo {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.item-alerta-motivo {
+  font-size: 0.76rem;
+  color: var(--texto-suave);
+}
+
+.item-alerta-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* --- Ficha de Trazabilidad Dinámica e Histórica por Institución ----------- */
+
+.cabecera-trazabilidad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.selector-institucion-trazabilidad {
+  min-width: 300px;
+  flex: 1 1 320px;
+  max-width: 460px;
+}
+
+.ficha-cabecera-institucion {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.ficha-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ficha-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pill-dato {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  color: var(--texto);
+}
+
+.bloque-score-ies {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 12px 16px;
+}
+
+.circulo-ies {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border: 4px solid var(--marca);
+  font-variant-numeric: tabular-nums;
+}
+
+.circulo-ies .numero-ies {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.circulo-ies .sobre-cien {
+  font-size: 0.68rem;
+  color: var(--texto-suave);
+}
+
+.alerta-killswitch-banner {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--grave) 14%, var(--superficie));
+  border: 1px solid var(--grave);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.84rem;
+}
+
+/* --- Barras de Dimensiones IES -------------------------------------------- */
+
+.fila-dimension {
+  margin-bottom: 12px;
+}
+
+.fila-dimension:last-child {
+  margin-bottom: 0;
+}
+
+.cabecera-dimension {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.84rem;
+  margin-bottom: 4px;
+}
+
+.nombre-dimension {
+  font-weight: 600;
+}
+
+.peso-dimension {
+  font-size: 0.74rem;
+  color: var(--texto-suave);
+}
+
+.pista-barra {
+  width: 100%;
+  height: 9px;
+  background: var(--borde);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.relleno-barra {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+/* --- Línea de Tiempo de Auditoría ----------------------------------------- */
+
+.contenedor-grafico-svg {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.contenedor-grafico-svg svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.timeline-auditoria {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evento-timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--marca);
+  font-size: 0.8rem;
+}
+
+.evento-timeline.evento--simulacion {
+  border-left-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 10%, var(--superficie));
+}
+
+.seccion-simulador {
+  margin-top: 16px;
+}
+
+/* --- Demarcación de Competencias ------------------------------------------ */
+
+.cabecera-competencia h3 {
+  margin-top: 8px;
+}
+
+.metricas-competencia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.caja-metrica {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.caja-metrica .etiqueta {
+  font-size: 0.74rem;
+  color: var(--texto-suave);
+  margin: 0 0 4px;
+}
+
+.caja-metrica .valor {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.lista-alcance {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  color: var(--texto);
+}
+
+.lista-alcance li {
+  margin-bottom: 5px;
+}
+
+/* --- Sección ODS ---------------------------------------------------------- */
+
+.seccion-ods {
+  margin-top: 20px;
+}
+
+.grilla-ods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.item-ods {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  background: var(--fondo);
+}
+
+.item-ods img {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  flex: 0 0 56px;
+}
+
+.item-ods h4 {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+}
+
+.item-ods p {
+  margin: 0;
+}
+
+/* --- Tabla interactiva y controles ---------------------------------------- */
+
+.controles-orden-padron {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.celda-nombre-escuela {
+  white-space: normal;
+  min-width: 210px;
+  max-width: 290px;
+}
+
+.subtexto-celda {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--texto-suave);
+}
+
+.checkbox-simulador {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--marca);
+  cursor: pointer;
+}
+
+/* --- Accesibilidad de Movimiento y Modo Impresión ------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .barra-filtros,
+  .navegacion-vistas,
+  .intro-acciones,
+  .boton-tema {
+    display: none !important;
+  }
+  .bloque-vista {
+    display: block !important;
+  }
+}

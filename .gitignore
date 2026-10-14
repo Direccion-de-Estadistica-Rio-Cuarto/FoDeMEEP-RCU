@@ -39,3 +39,7 @@ desktop.ini
 # Carpetas de referencia temporal
 rcu_template/
 template_ref/
+
+mapas_rcu/
+rcu-tablero-template/
+rcu_template/

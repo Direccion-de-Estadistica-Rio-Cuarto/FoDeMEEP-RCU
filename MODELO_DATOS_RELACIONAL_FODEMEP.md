@@ -1,4 +1,4 @@
-# Sistema FODEMEP Río Cuarto: Modelo Relacional y Padrón Filtrado de Instituciones
+# Sistema FoDeMEEP Río Cuarto: Modelo Relacional y Padrón Filtrado de Instituciones
 
 Este documento detalla el proceso de depuración, filtrado riguroso del padrón de instituciones educativas de Río Cuarto y la especificación completa del modelo de datos relacional para **PostgreSQL / Supabase** y **Prisma ORM**.
 
@@ -138,26 +138,26 @@ Se estructuró el catálogo normalizado con las 20 categorías oficiales y su de
 
 | Código | Denominación Oficial | Jurisdicción por Defecto | Nivel Severidad |
 | :--- | :--- | :--- | :--- |
-| `PLOMERIA` | Plomería y Grifería | `FODEMEP` (Municipal) | Media |
-| `ELECTRICIDAD` | Electricidad e Iluminación | `FODEMEP` (Municipal) | Grave |
-| `HERRERIA` | Herrería y Cerramientos | `FODEMEP` (Municipal) | Media |
-| `GAS` | Gas y Calefacción (*Kill-Switch*) | `FODEMEP` (Municipal) | Crítica |
-| `DESINFECCION` | Desinfección y Control de Plagas | `FODEMEP` (Municipal) | Media |
-| `VARIOS` | Mantenimiento General / Cerrajería | `FODEMEP` (Municipal) | Leve |
-| `PINTURA` | Pintura Interior y Fachada | `FODEMEP` (Municipal) | Leve |
-| `ALBANILERIA` | Albañilería y Solados | `FODEMEP` (Municipal) | Media |
-| `REPARACION_ARTEFACTOS` | Reparación de Artefactos | `FODEMEP` (Municipal) | Media |
-| `FILTRACIONES` | Filtraciones, Cubiertas y Goteras | `FODEMEP` (Municipal) | Grave |
-| `MATAFUEGOS` | Matafuegos y Seguridad Siniestral | `FODEMEP` (Municipal) | Grave |
-| `PODA_CORTE_PASTO` | Poda, Desmalezado y Césped | `FODEMEP` (Municipal) | Leve |
-| `BOMBA` | Bomba de Agua y Presurizadoras | `FODEMEP` (Municipal) | Grave |
-| `LIMPIEZA_TANQUE` | Limpieza y Sellado de Cisternas | `FODEMEP` (Municipal) | Grave |
-| `MOBILIARIO` | Mobiliario Escolar | `FODEMEP` (Municipal) | Leve |
-| `DESAGOTE` | Desagote de Pozos y Cámaras | `FODEMEP` (Municipal) | Grave |
-| `LIMPIEZA_DESAGUES` | Limpieza de Desagües Pluviales | `FODEMEP` (Municipal) | Media |
+| `PLOMERIA` | Plomería y Grifería | `FoDeMEEP` (Municipal) | Media |
+| `ELECTRICIDAD` | Electricidad e Iluminación | `FoDeMEEP` (Municipal) | Grave |
+| `HERRERIA` | Herrería y Cerramientos | `FoDeMEEP` (Municipal) | Media |
+| `GAS` | Gas y Calefacción (*Kill-Switch*) | `FoDeMEEP` (Municipal) | Crítica |
+| `DESINFECCION` | Desinfección y Control de Plagas | `FoDeMEEP` (Municipal) | Media |
+| `VARIOS` | Mantenimiento General / Cerrajería | `FoDeMEEP` (Municipal) | Leve |
+| `PINTURA` | Pintura Interior y Fachada | `FoDeMEEP` (Municipal) | Leve |
+| `ALBANILERIA` | Albañilería y Solados | `FoDeMEEP` (Municipal) | Media |
+| `REPARACION_ARTEFACTOS` | Reparación de Artefactos | `FoDeMEEP` (Municipal) | Media |
+| `FILTRACIONES` | Filtraciones, Cubiertas y Goteras | `FoDeMEEP` (Municipal) | Grave |
+| `MATAFUEGOS` | Matafuegos y Seguridad Siniestral | `FoDeMEEP` (Municipal) | Grave |
+| `PODA_CORTE_PASTO` | Poda, Desmalezado y Césped | `FoDeMEEP` (Municipal) | Leve |
+| `BOMBA` | Bomba de Agua y Presurizadoras | `FoDeMEEP` (Municipal) | Grave |
+| `LIMPIEZA_TANQUE` | Limpieza y Sellado de Cisternas | `FoDeMEEP` (Municipal) | Grave |
+| `MOBILIARIO` | Mobiliario Escolar | `FoDeMEEP` (Municipal) | Leve |
+| `DESAGOTE` | Desagote de Pozos y Cámaras | `FoDeMEEP` (Municipal) | Grave |
+| `LIMPIEZA_DESAGUES` | Limpieza de Desagües Pluviales | `FoDeMEEP` (Municipal) | Media |
 | `OBRA` | Refacción Estructural Mayor | `PROVINCIA_MAYOR` (Ministerio) | Crítica |
-| `CLIMATIZACION` | Climatización / Ventiladores | `FODEMEP` (Municipal) | Media |
-| `CAMION_CISTERNA` | Provisión de Emergencia de Agua | `FODEMEP` (Municipal) | Crítica |
+| `CLIMATIZACION` | Climatización / Ventiladores | `FoDeMEEP` (Municipal) | Media |
+| `CAMION_CISTERNA` | Provisión de Emergencia de Agua | `FoDeMEEP` (Municipal) | Crítica |
 
 ---
 

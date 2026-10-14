@@ -110,7 +110,7 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
             />
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: 'var(--marca-enlace)' }}>
-                Dirección de Estadística · FODEMEP
+                Dirección de Estadística · FoDeMEEP
               </span>
               <h2 className="text-lg md:text-xl font-bold leading-tight" style={{ color: 'var(--texto)' }}>
                 Auditoría Técnica y Cierre de Relevamiento
@@ -275,10 +275,10 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
                   </span>
                   <span
                     className={`estado ${
-                      inc.jurisdiccion === 'FODEMEP' ? 'estado--ok' : 'estado--alerta'
+                      inc.jurisdiccion === 'FoDeMEEP' ? 'estado--ok' : 'estado--alerta'
                     }`}
                   >
-                    {inc.jurisdiccion === 'FODEMEP' ? 'Descentralizado Municipal' : 'Provincia Mayor'}
+                    {inc.jurisdiccion === 'FoDeMEEP' ? 'Descentralizado Municipal' : 'Provincia Mayor'}
                   </span>
                 </div>
                 <p style={{ color: 'var(--texto-suave)' }}>{inc.descripcion}</p>

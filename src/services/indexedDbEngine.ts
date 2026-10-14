@@ -8,7 +8,7 @@
 
 import type { RelevamientoBorrador, EventoAuditoria, ItemColaSync } from '../types/fodemep';
 
-const DB_NOMBRE = 'FODEMEP_CAMPO_DB';
+const DB_NOMBRE = 'FoDeMEEP_CAMPO_DB';
 const DB_VERSION = 1;
 
 export interface FotoBlobRegistro {

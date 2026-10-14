@@ -78,7 +78,7 @@ export const ModalVisorBBDD: React.FC<ModalVisorBBDDProps> = ({
 
   const copiarSql = () => {
     const uuid = borrador.uuid || '00000000-0000-0000-0000-000000000000';
-    const sql = `-- VOLCADO SQL FODEMEP RÍO CUARTO (${new Date().toISOString()})
+    const sql = `-- VOLCADO SQL FoDeMEEP RÍO CUARTO (${new Date().toISOString()})
 -- 1. Cabecera del Relevamiento
 INSERT INTO relevamientos (id, institucion_id, fecha_relevamiento, estado, indice_ies_total, estado_semaforo, firma_inspector, hash_integridad)
 VALUES ('${uuid}', '${escuela.id}', '${borrador.fecha}', 'CONSOLIDADO', ${resultadoIndice.global}, '${resultadoIndice.global >= 80 ? 'OPTIMO' : resultadoIndice.global >= 50 ? 'ACEPTABLE' : 'CRITICO'}', '${borrador.tecnicoNombre}', '${borrador.hashIntegridad || '303638c5299a50f8...'}');

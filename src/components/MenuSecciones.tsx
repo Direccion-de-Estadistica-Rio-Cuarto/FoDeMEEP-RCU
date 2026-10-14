@@ -248,7 +248,7 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
             className="boton boton--primario boton--grande w-full shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 font-bold"
           >
             <Icono name="fact_check" size={20} />
-            <span>Revisar Auditoría y Cierre FODEMEP</span>
+            <span>Revisar Auditoría y Cierre FoDeMEEP</span>
           </button>
         </div>
       </div>

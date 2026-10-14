@@ -1,5 +1,5 @@
 -- =============================================================================
--- ESQUEMA RELACIONAL POSTGRESQL / SUPABASE - SISTEMA FODEMEP RÍO CUARTO
+-- ESQUEMA RELACIONAL POSTGRESQL / SUPABASE - SISTEMA FoDeMEEP RÍO CUARTO
 -- Infraestructura, Relevamiento Móvil en Campo, Índices IES y Obras
 -- =============================================================================
 
@@ -68,7 +68,7 @@ CREATE TYPE severidad_incidencia AS ENUM (
 );
 
 CREATE TYPE jurisdiccion_incidencia AS ENUM (
-    'FODEMEP',         -- Descentralizado municipal / Mantenimiento correctivo y preventivo
+    'FoDeMEEP',         -- Descentralizado municipal / Mantenimiento correctivo y preventivo
     'PROVINCIA_MAYOR', -- Infraestructura mayor provincial
     'COOPERADORA'      -- Institucional propio
 );
@@ -131,7 +131,7 @@ CREATE TABLE instituciones_educativas (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Usuarios del Sistema (Inspectores, Coordinadores FODEMEP, Directores)
+-- Usuarios del Sistema (Inspectores, Coordinadores FoDeMEEP, Directores)
 CREATE TABLE usuarios (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -189,12 +189,12 @@ CREATE TABLE respuestas_relevamiento (
     CONSTRAINT uq_relevamiento_pregunta UNIQUE (relevamiento_id, pregunta_id)
 );
 
--- Catálogo Oficial de 20 Incidencias FODEMEP
+-- Catálogo Oficial de 20 Incidencias FoDeMEEP
 CREATE TABLE catalogo_incidencias (
     codigo VARCHAR(50) PRIMARY KEY, -- PLOMERIA, ELECTRICIDAD, GAS, etc.
     nombre VARCHAR(150) NOT NULL,
     descripcion TEXT,
-    jurisdiccion_default jurisdiccion_incidencia NOT NULL DEFAULT 'FODEMEP',
+    jurisdiccion_default jurisdiccion_incidencia NOT NULL DEFAULT 'FoDeMEEP',
     severidad_default severidad_incidencia NOT NULL DEFAULT 'MEDIA',
     orden_visual INT DEFAULT 0
 );
@@ -210,7 +210,7 @@ CREATE TABLE incidencias (
     titulo VARCHAR(255) NOT NULL,
     descripcion TEXT NOT NULL,
     severidad severidad_incidencia NOT NULL DEFAULT 'MEDIA',
-    jurisdiccion jurisdiccion_incidencia NOT NULL DEFAULT 'FODEMEP',
+    jurisdiccion jurisdiccion_incidencia NOT NULL DEFAULT 'FoDeMEEP',
     estado estado_incidencia NOT NULL DEFAULT 'REPORTADA',
     costo_estimado NUMERIC(12, 2),
     costo_final NUMERIC(12, 2),

@@ -29,7 +29,7 @@ export const ModalRubricaTecnica: React.FC<ModalRubricaTecnicaProps> = ({
                 Rúbrica Técnica Homogénea
               </span>
               <h3 className="font-bold text-sm md:text-base leading-tight" style={{ color: 'var(--texto)' }}>
-                Criterios de Ponderación FODEMEP
+                Criterios de Ponderación FoDeMEEP
               </h3>
             </div>
           </div>

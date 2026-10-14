@@ -1,33 +1,33 @@
 -- =============================================================================
--- SEED DATA: SISTEMA FODEMEP RÍO CUARTO
+-- SEED DATA: SISTEMA FoDeMEEP RÍO CUARTO
 -- 1. Catálogo Oficial de 20 Incidencias
 -- 2. Usuario Inicial Inspector / Supervisor
 -- 3. Instituciones Educativas Públicas Provinciales de Río Cuarto (Modalidad Común)
 -- =============================================================================
 
--- 1. Catálogo Oficial de 20 Incidencias FODEMEP
+-- 1. Catálogo Oficial de 20 Incidencias FoDeMEEP
 INSERT INTO catalogo_incidencias (codigo, nombre, descripcion, jurisdiccion_default, severidad_default, orden_visual)
 VALUES
-  ('PLOMERIA', 'Plomería y Grifería', 'Reparación de cañerías, sanitarios, pérdidas de agua y grifería', 'FODEMEP', 'MEDIA', 1),
-  ('ELECTRICIDAD', 'Electricidad e Iluminación', 'Tableros, disyuntores diferenciales, cableados, luminarias y tomas', 'FODEMEP', 'GRAVE', 2),
-  ('HERRERIA', 'Herrería y Seguridad perimetral', 'Rejas, portones, barandas, cerramientos y aberturas metálicas', 'FODEMEP', 'MEDIA', 3),
-  ('GAS', 'Gas y Calefacción', 'Fugas, calefactores de tiro balanceado, reguladores y pruebas de hermeticidad', 'FODEMEP', 'CRITICA', 4),
-  ('DESINFECCION', 'Desinfección y Control de Plagas', 'Fumigación, desratización y control vectorial periódico', 'FODEMEP', 'MEDIA', 5),
-  ('VARIOS', 'Mantenimiento General / Varios', 'Cerrajería, vidrios, ajustes menores y reparaciones generales', 'FODEMEP', 'LEVE', 6),
-  ('PINTURA', 'Pintura', 'Pintura interior de aulas, galerías, fachadas y señalización de seguridad', 'FODEMEP', 'LEVE', 7),
-  ('ALBANILERIA', 'Albañilería', 'Revoques, mampostería, solados, contrapisos y fisuras no estructurales', 'FODEMEP', 'MEDIA', 8),
-  ('REPARACION_ARTEFACTOS', 'Reparación y Mantenimiento de Artefactos', 'Service técnico a cocinas, anafes, termotanques y calderas', 'FODEMEP', 'MEDIA', 9),
-  ('FILTRACIONES', 'Filtraciones y Cubiertas', 'Impermeabilización de losas, reparación de chapas, canaletas y goteras', 'FODEMEP', 'GRAVE', 10),
-  ('MATAFUEGOS', 'Matafuegos y Seguridad Siniestral', 'Recarga anual, verificación de manómetros, cartelería de evacuación', 'FODEMEP', 'GRAVE', 11),
-  ('PODA_CORTE_PASTO', 'Poda y Desmalezado', 'Corte de césped en patios, desmalezado y poda de ramas con riesgo sobre techos o cableado', 'FODEMEP', 'LEVE', 12),
-  ('BOMBA', 'Bomba de Agua', 'Reparación o recambio de bombas elevadoras y presurizadoras de agua', 'FODEMEP', 'GRAVE', 13),
-  ('LIMPIEZA_TANQUE', 'Limpieza de Tanque / Cisterna', 'Vaciado, desinfección, cloración y sellado hermético de tanques', 'FODEMEP', 'GRAVE', 14),
-  ('MOBILIARIO', 'Mobiliario Escolar', 'Reparación de bancos, sillas, pupitres, pizarrones y armarios', 'FODEMEP', 'LEVE', 15),
-  ('DESAGOTE', 'Desagote de Pozos y Cámaras', 'Servicio atmosférico para desagote de pozos negros y cámaras sépticas', 'FODEMEP', 'GRAVE', 16),
-  ('LIMPIEZA_DESAGUES', 'Limpieza de Desagües y Pluviales', 'Desobstrucción de pluviales, rejillas de patio, canaletas y bajadas', 'FODEMEP', 'MEDIA', 17),
+  ('PLOMERIA', 'Plomería y Grifería', 'Reparación de cañerías, sanitarios, pérdidas de agua y grifería', 'FoDeMEEP', 'MEDIA', 1),
+  ('ELECTRICIDAD', 'Electricidad e Iluminación', 'Tableros, disyuntores diferenciales, cableados, luminarias y tomas', 'FoDeMEEP', 'GRAVE', 2),
+  ('HERRERIA', 'Herrería y Seguridad perimetral', 'Rejas, portones, barandas, cerramientos y aberturas metálicas', 'FoDeMEEP', 'MEDIA', 3),
+  ('GAS', 'Gas y Calefacción', 'Fugas, calefactores de tiro balanceado, reguladores y pruebas de hermeticidad', 'FoDeMEEP', 'CRITICA', 4),
+  ('DESINFECCION', 'Desinfección y Control de Plagas', 'Fumigación, desratización y control vectorial periódico', 'FoDeMEEP', 'MEDIA', 5),
+  ('VARIOS', 'Mantenimiento General / Varios', 'Cerrajería, vidrios, ajustes menores y reparaciones generales', 'FoDeMEEP', 'LEVE', 6),
+  ('PINTURA', 'Pintura', 'Pintura interior de aulas, galerías, fachadas y señalización de seguridad', 'FoDeMEEP', 'LEVE', 7),
+  ('ALBANILERIA', 'Albañilería', 'Revoques, mampostería, solados, contrapisos y fisuras no estructurales', 'FoDeMEEP', 'MEDIA', 8),
+  ('REPARACION_ARTEFACTOS', 'Reparación y Mantenimiento de Artefactos', 'Service técnico a cocinas, anafes, termotanques y calderas', 'FoDeMEEP', 'MEDIA', 9),
+  ('FILTRACIONES', 'Filtraciones y Cubiertas', 'Impermeabilización de losas, reparación de chapas, canaletas y goteras', 'FoDeMEEP', 'GRAVE', 10),
+  ('MATAFUEGOS', 'Matafuegos y Seguridad Siniestral', 'Recarga anual, verificación de manómetros, cartelería de evacuación', 'FoDeMEEP', 'GRAVE', 11),
+  ('PODA_CORTE_PASTO', 'Poda y Desmalezado', 'Corte de césped en patios, desmalezado y poda de ramas con riesgo sobre techos o cableado', 'FoDeMEEP', 'LEVE', 12),
+  ('BOMBA', 'Bomba de Agua', 'Reparación o recambio de bombas elevadoras y presurizadoras de agua', 'FoDeMEEP', 'GRAVE', 13),
+  ('LIMPIEZA_TANQUE', 'Limpieza de Tanque / Cisterna', 'Vaciado, desinfección, cloración y sellado hermético de tanques', 'FoDeMEEP', 'GRAVE', 14),
+  ('MOBILIARIO', 'Mobiliario Escolar', 'Reparación de bancos, sillas, pupitres, pizarrones y armarios', 'FoDeMEEP', 'LEVE', 15),
+  ('DESAGOTE', 'Desagote de Pozos y Cámaras', 'Servicio atmosférico para desagote de pozos negros y cámaras sépticas', 'FoDeMEEP', 'GRAVE', 16),
+  ('LIMPIEZA_DESAGUES', 'Limpieza de Desagües y Pluviales', 'Desobstrucción de pluviales, rejillas de patio, canaletas y bajadas', 'FoDeMEEP', 'MEDIA', 17),
   ('OBRA', 'Obra / Refacción Estructural', 'Construcción de aulas, núcleos sanitarios completos o intervención mayor', 'PROVINCIA_MAYOR', 'CRITICA', 18),
-  ('CLIMATIZACION', 'Adquisición de Artefactos de Climatización', 'Ventiladores industriales de pared, aire acondicionado o calefacción central', 'FODEMEP', 'MEDIA', 19),
-  ('CAMION_CISTERNA', 'Provisión por Camión Cisterna', 'Suministro de emergencia de agua potable ante corte o rotura de red', 'FODEMEP', 'CRITICA', 20)
+  ('CLIMATIZACION', 'Adquisición de Artefactos de Climatización', 'Ventiladores industriales de pared, aire acondicionado o calefacción central', 'FoDeMEEP', 'MEDIA', 19),
+  ('CAMION_CISTERNA', 'Provisión por Camión Cisterna', 'Suministro de emergencia de agua potable ante corte o rotura de red', 'FoDeMEEP', 'CRITICA', 20)
 ON CONFLICT (codigo) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   descripcion = EXCLUDED.descripcion,
@@ -37,8 +37,8 @@ ON CONFLICT (codigo) DO UPDATE SET
 -- 2. Usuario Supervisor / Inspector Técnico Inicial
 INSERT INTO usuarios (id, email, nombre_completo, rol, telefono, activo)
 VALUES
-  ('00000000-0000-0000-0000-000000000001', 'inspector.fodemep@riocuarto.gov.ar', 'Técnico de Campo FODEMEP', 'INSPECTOR_CAMPO', '358-4000000', TRUE),
-  ('00000000-0000-0000-0000-000000000002', 'coordinador.fodemep@riocuarto.gov.ar', 'Coordinador General FODEMEP Río Cuarto', 'SUPERVISOR_MUNICIPAL', '358-4000001', TRUE)
+  ('00000000-0000-0000-0000-000000000001', 'inspector.fodemep@riocuarto.gov.ar', 'Técnico de Campo FoDeMEEP', 'INSPECTOR_CAMPO', '358-4000000', TRUE),
+  ('00000000-0000-0000-0000-000000000002', 'coordinador.fodemep@riocuarto.gov.ar', 'Coordinador General FoDeMEEP Río Cuarto', 'SUPERVISOR_MUNICIPAL', '358-4000001', TRUE)
 ON CONFLICT (email) DO NOTHING;
 
 -- 3. Instituciones Educativas Públicas de Modalidad Común (84 instituciones)

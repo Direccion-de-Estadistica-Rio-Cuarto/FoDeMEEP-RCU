@@ -1,4 +1,4 @@
-// Prisma Schema para Sistema FODEMEP - Relevamiento y Monitoreo Provincial
+// Prisma Schema para Sistema FoDeMEEP - Relevamiento y Monitoreo Provincial
 // Instituciones Educativas de Río Cuarto, Índices de Infraestructura y Gestión de Obras
 
 generator client {
@@ -71,7 +71,7 @@ enum SeveridadIncidencia {
 }
 
 enum JurisdiccionIncidencia {
-  FODEMEP          // Descentralizado municipal / Mantenimiento correctivo y preventivo
+  FoDeMEEP          // Descentralizado municipal / Mantenimiento correctivo y preventivo
   PROVINCIA_MAYOR  // Infraestructura mayor / Ministerio de Educación CBA
   COOPERADORA      // Recursos propios de la institución
 }
@@ -142,7 +142,7 @@ model InstitucionEducativa {
   @@map("instituciones_educativas")
 }
 
-/// Usuario del sistema (Inspectores técnicos, Supervisores FODEMEP, Directores)
+/// Usuario del sistema (Inspectores técnicos, Supervisores FoDeMEEP, Directores)
 model Usuario {
   id             String          @id @default(uuid())
   email          String          @unique
@@ -222,7 +222,7 @@ model CatalogoIncidencia {
   codigo              String                 @id // PLOMERIA, ELECTRICIDAD, GAS, etc.
   nombre              String
   descripcion         String?
-  jurisdiccionDefault JurisdiccionIncidencia @default(FODEMEP) @map("jurisdiccion_default")
+  jurisdiccionDefault JurisdiccionIncidencia @default(FoDeMEEP) @map("jurisdiccion_default")
   severidadDefault    SeveridadIncidencia    @default(MEDIA) @map("severidad_default")
   ordenVisual         Int                    @default(0) @map("orden_visual")
 
@@ -242,7 +242,7 @@ model Incidencia {
   titulo           String
   descripcion      String
   severidad        SeveridadIncidencia    @default(MEDIA)
-  jurisdiccion     JurisdiccionIncidencia @default(FODEMEP)
+  jurisdiccion     JurisdiccionIncidencia @default(FoDeMEEP)
   estado           EstadoIncidencia       @default(REPORTADA)
   costoEstimado    Float?                 @map("costo_estimado")
   costoFinal       Float?                 @map("costo_final")

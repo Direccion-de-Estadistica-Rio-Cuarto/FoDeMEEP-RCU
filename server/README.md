@@ -13,7 +13,7 @@ Servidor de API REST transaccional para la recepción, auditoría, cálculo y pe
 | `GET` | `/api/v1/escuelas/:id` | Detalle institucional e historial de relevamientos técnicos |
 | `GET` | `/api/v1/relevamientos` | Listado consolidado de relevamientos realizados con estado de auditoría |
 | `GET` | `/api/v1/relevamientos/:id` | Expediente completo (164 respuestas normalizadas, evidencias y trazabilidad) |
-| `GET` | `/api/v1/kpis` | Métricas municipales en vivo (cobertura escolar, desglose FODEMEP vs Provincia) |
+| `GET` | `/api/v1/kpis` | Métricas municipales en vivo (cobertura escolar, desglose FoDeMEEP vs Provincia) |
 | `GET` | `/api/health` | Healthcheck para sondeo de conectividad y latencia desde la PWA |
 
 ---

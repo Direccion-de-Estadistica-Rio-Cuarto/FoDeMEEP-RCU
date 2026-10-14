@@ -67,7 +67,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 2,
         opciones: [
           { id: 'si', label: 'Sí, todas en uso activo' },
-          { id: 'no', label: 'No, hay aulas clausuradas o en desuso', generaIncidencia: { tipo: 'MOBILIARIO', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Aulas sin uso activo por falta de acondicionamiento' } },
+          { id: 'no', label: 'No, hay aulas clausuradas o en desuso', generaIncidencia: { tipo: 'MOBILIARIO', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Aulas sin uso activo por falta de acondicionamiento' } },
         ],
       },
       { id: 10, texto: 'Cantidad de aulas en uso activo', tipo: 'number', seccionId: 2 },
@@ -132,8 +132,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Desgaste y piezas flojas en pisos' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Baldosas faltantes y roturas generalizadas' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Desgaste y piezas flojas en pisos' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Baldosas faltantes y roturas generalizadas' } },
           { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'OBRA', criticidad: 'ALTA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 7, descripcion: 'Hundimiento severo de piso con peligro de accidente' } },
         ],
       },
@@ -143,7 +143,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         tipo: 'single_choice',
         seccionId: 3,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Riesgo de tropiezo o desnivel peligroso en solado' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Riesgo de tropiezo o desnivel peligroso en solado' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -162,8 +162,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'PINTURA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Pintura deteriorada y humedad superficial en muros' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Revoques desprendidos y humedad ascendente en paredes' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'PINTURA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Pintura deteriorada y humedad superficial en muros' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Revoques desprendidos y humedad ascendente en paredes' } },
           { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'OBRA', criticidad: 'CRITICA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 8, descripcion: 'Fallas estructurales severas en muros portantes' } },
         ],
       },
@@ -193,8 +193,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'FILTRACIONES', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 3, descripcion: 'Mantenimiento preventivo en cubiertas' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'FILTRACIONES', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Goteras activas y membranas rotas en techos' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'FILTRACIONES', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 3, descripcion: 'Mantenimiento preventivo en cubiertas' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'FILTRACIONES', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Goteras activas y membranas rotas en techos' } },
           { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'OBRA', criticidad: 'CRITICA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 10, descripcion: 'Peligro de colapso de techos o filtración masiva' } },
         ],
       },
@@ -204,7 +204,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         tipo: 'single_choice',
         seccionId: 3,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'FILTRACIONES', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 5, descripcion: 'Filtración activa de lluvia en sectores de la escuela' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'FILTRACIONES', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 5, descripcion: 'Filtración activa de lluvia en sectores de la escuela' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -215,7 +215,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 3,
         esCritica: true,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 8, descripcion: 'Peligro de caída de mampostería o cielorraso', esKillSwitch: true, motivoAlerta: 'Riesgo inminente de desprendimiento de revoques/cielorraso' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 8, descripcion: 'Peligro de caída de mampostería o cielorraso', esKillSwitch: true, motivoAlerta: 'Riesgo inminente de desprendimiento de revoques/cielorraso' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -234,9 +234,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Ajuste de cerrajería y bisagras en aberturas' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Aberturas trabadas y vidrios rajados' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Peligro de corte por vidrios astillados o puertas caídas' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Ajuste de cerrajería y bisagras en aberturas' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Aberturas trabadas y vidrios rajados' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Peligro de corte por vidrios astillados o puertas caídas' } },
         ],
       },
       { id: 38, texto: 'Cantidad aproximada de vidrios rotos o faltantes', tipo: 'number', seccionId: 3, placeholder: 'Ej: 4' },
@@ -255,9 +255,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Mantenimiento preventivo en cerramientos' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Portones caídos o rejas vencidas' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Falla perimetral grave con inseguridad escolar' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Mantenimiento preventivo en cerramientos' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Portones caídos o rejas vencidas' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Falla perimetral grave con inseguridad escolar' } },
         ],
       },
     ],
@@ -288,7 +288,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 4,
         opciones: [
           { id: 'si', label: 'Sí, matriculado al día' },
-          { id: 'no', label: 'No / En trámite', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Instalación de gas sin habilitación vigente' } },
+          { id: 'no', label: 'No / En trámite', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Instalación de gas sin habilitación vigente' } },
           { id: 'ns', label: 'No se pudo verificar' },
         ],
       },
@@ -307,9 +307,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'GAS', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 3, descripcion: 'Pintura y sujeciones de caños de gas' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Cañerías de gas corroídas o antirreglamentarias' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'GAS', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 10, descripcion: 'Peligro grave en tendido de gas', esKillSwitch: true, motivoAlerta: 'Riesgo grave en instalación de gas' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'GAS', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 3, descripcion: 'Pintura y sujeciones de caños de gas' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Cañerías de gas corroídas o antirreglamentarias' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'GAS', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 10, descripcion: 'Peligro grave en tendido de gas', esKillSwitch: true, motivoAlerta: 'Riesgo grave en instalación de gas' } },
         ],
       },
       {
@@ -319,7 +319,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 4,
         esCritica: true,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'GAS', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 12, descripcion: 'Olor a gas o fuga reportada activa', esKillSwitch: true, motivoAlerta: 'Pérdida o fuga de gas reportada' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'GAS', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 12, descripcion: 'Olor a gas o fuga reportada activa', esKillSwitch: true, motivoAlerta: 'Pérdida o fuga de gas reportada' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -330,8 +330,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 4,
         opciones: [
           { id: 'todos', label: 'Sí, todos con llave propia accesible y operativa' },
-          { id: 'algunos', label: 'Algunos no tienen o están trabadas', generaIncidencia: { tipo: 'GAS', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 3, descripcion: 'Faltan llaves de paso de gas individuales' } },
-          { id: 'mayoria', label: 'La mayoría carece de llave o está inaccesible', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Falta generalizada de llaves de corte de gas' } },
+          { id: 'algunos', label: 'Algunos no tienen o están trabadas', generaIncidencia: { tipo: 'GAS', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 3, descripcion: 'Faltan llaves de paso de gas individuales' } },
+          { id: 'mayoria', label: 'La mayoría carece de llave o está inaccesible', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Falta generalizada de llaves de corte de gas' } },
         ],
       },
       {
@@ -342,8 +342,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         esCritica: true,
         opciones: [
           { id: 'adecuada', label: 'Adecuadas en todos los locales (rejillas libres y tiro balanceado)' },
-          { id: 'deficientes', label: 'Deficientes u obstruidas en algunos locales', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 5, descripcion: 'Rejillas de ventilación de gas tapadas o deterioradas' } },
-          { id: 'inexistentes', label: 'Inexistentes en locales con artefactos', generaIncidencia: { tipo: 'GAS', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 9, descripcion: 'Locales con artefactos sin ventilación reglamentaria', esKillSwitch: true, motivoAlerta: 'Peligro de monóxido de carbono por falta de ventilación' } },
+          { id: 'deficientes', label: 'Deficientes u obstruidas en algunos locales', generaIncidencia: { tipo: 'GAS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 5, descripcion: 'Rejillas de ventilación de gas tapadas o deterioradas' } },
+          { id: 'inexistentes', label: 'Inexistentes en locales con artefactos', generaIncidencia: { tipo: 'GAS', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 9, descripcion: 'Locales con artefactos sin ventilación reglamentaria', esKillSwitch: true, motivoAlerta: 'Peligro de monóxido de carbono por falta de ventilación' } },
         ],
       },
     ],
@@ -381,8 +381,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'LIMPIEZA DE DESAGUES', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Descargas lentas en sanitarios' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'DESAGOTE', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Saturación cloacal recurrente' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'LIMPIEZA DE DESAGUES', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Descargas lentas en sanitarios' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'DESAGOTE', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Saturación cloacal recurrente' } },
           { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'OBRA', criticidad: 'CRITICA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 8, descripcion: 'Colapso total de sistema cloacal' } },
         ],
       },
@@ -392,7 +392,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         tipo: 'single_choice',
         seccionId: 5,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'DESAGOTE', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 5, descripcion: 'Desbordes u olores cloacales en el edificio' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'DESAGOTE', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 5, descripcion: 'Desbordes u olores cloacales en el edificio' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -411,8 +411,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'LIMPIEZA DE DESAGUES', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Canaletas con hojas y suciedad' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'LIMPIEZA DE DESAGUES', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Canaletas pluviales desprendidas o rotas' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'LIMPIEZA DE DESAGUES', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Canaletas con hojas y suciedad' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'LIMPIEZA DE DESAGUES', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Canaletas pluviales desprendidas o rotas' } },
           { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'OBRA', criticidad: 'ALTA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 6, descripcion: 'Falta total de drenaje pluvial con anegamiento' } },
         ],
       },
@@ -442,7 +442,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 6,
         opciones: [
           { id: 'si', label: 'Sí, la cobertura es completa' },
-          { id: 'no', label: 'No, faltan calefactores en algunas aulas/espacios', generaIncidencia: { tipo: 'ADQUISICION DE ARTEFACTOS DE CLIMATIZACION', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 5, descripcion: 'Faltan calefactores en aulas activas' } },
+          { id: 'no', label: 'No, faltan calefactores en algunas aulas/espacios', generaIncidencia: { tipo: 'ADQUISICION DE ARTEFACTOS DE CLIMATIZACION', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 5, descripcion: 'Faltan calefactores en aulas activas' } },
         ],
       },
       { id: 80, texto: 'Cantidad TOTAL de ventiladores (techo/pared) instalados', tipo: 'number', seccionId: 6 },
@@ -475,8 +475,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'LIMPIEZA DE TANQUE/CISTERNA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 3, descripcion: 'Limpieza y desinfección preventiva de tanques' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'LIMPIEZA DE TANQUE/CISTERNA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Fisuras o tapas deterioradas en tanques' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'LIMPIEZA DE TANQUE/CISTERNA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 3, descripcion: 'Limpieza y desinfección preventiva de tanques' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'LIMPIEZA DE TANQUE/CISTERNA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Fisuras o tapas deterioradas en tanques' } },
           { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'OBRA', criticidad: 'CRITICA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 10, descripcion: 'Riesgo de colapso de torre o contaminación grave de agua', esKillSwitch: true, motivoAlerta: 'Riesgo hídrico y sanitario en tanques' } },
         ],
       },
@@ -488,8 +488,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         esCritica: true,
         opciones: [
           { id: 'si', label: 'Sí, todas selladas y herméticas' },
-          { id: 'no', label: 'No, están destapados (riesgo sanitario inminente)', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 7, descripcion: 'Tanques de agua sin tapa hermética reglamentaria', esKillSwitch: true, motivoAlerta: 'Tanques de agua potable sin tapa' } },
-          { id: 'algunos', label: 'Algunos no cuentan con tapa adecuada', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Ciertas reservas de agua sin tapa adecuada' } },
+          { id: 'no', label: 'No, están destapados (riesgo sanitario inminente)', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 7, descripcion: 'Tanques de agua sin tapa hermética reglamentaria', esKillSwitch: true, motivoAlerta: 'Tanques de agua potable sin tapa' } },
+          { id: 'algunos', label: 'Algunos no cuentan con tapa adecuada', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Ciertas reservas de agua sin tapa adecuada' } },
         ],
       },
       {
@@ -498,7 +498,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         tipo: 'single_choice',
         seccionId: 7,
         opciones: [
-          { id: 'b_0', label: '0 (Sin bombas funcionando)', generaIncidencia: { tipo: 'BOMBA', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 8, descripcion: 'Sin bomba en servicio: falta de agua inminente', esKillSwitch: true, motivoAlerta: 'Falla total del sistema de bombeo de agua' } },
+          { id: 'b_0', label: '0 (Sin bombas funcionando)', generaIncidencia: { tipo: 'BOMBA', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 8, descripcion: 'Sin bomba en servicio: falta de agua inminente', esKillSwitch: true, motivoAlerta: 'Falla total del sistema de bombeo de agua' } },
           { id: 'b_1', label: '1 bomba' },
           { id: 'b_2', label: '2 bombas' },
           { id: 'b_3', label: '3 o más bombas' },
@@ -519,9 +519,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'BOMBA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Bomba con ruidos o automático manual' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'BOMBA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 5, descripcion: 'Pérdida en sello mecánico de bomba' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'BOMBA', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 8, descripcion: 'Electrobomba quemada o trabada' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'BOMBA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Bomba con ruidos o automático manual' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'BOMBA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 5, descripcion: 'Pérdida en sello mecánico de bomba' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'BOMBA', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 8, descripcion: 'Electrobomba quemada o trabada' } },
         ],
       },
     ],
@@ -553,9 +553,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Goteos leves en canillas' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Canillas con pérdidas continuas y volantes rotos' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Faltante masivo de griferías con desperdicio de agua' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Goteos leves en canillas' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Canillas con pérdidas continuas y volantes rotos' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'PLOMERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Faltante masivo de griferías con desperdicio de agua' } },
         ],
       },
       { id: 108, texto: 'Cantidad estimada de canillas que necesitan recambio urgente', tipo: 'number', seccionId: 8, placeholder: 'Ej: 8' },
@@ -594,9 +594,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Tubos quemados en aulas' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Falta general de luminarias en pasillos y aulas' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 7, descripcion: 'Artefactos de iluminación con peligro eléctrico' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Tubos quemados en aulas' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Falta general de luminarias en pasillos y aulas' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 7, descripcion: 'Artefactos de iluminación con peligro eléctrico' } },
         ],
       },
       { id: 114, texto: 'Cantidad aproximada TOTAL de artefactos de iluminación instalados', tipo: 'number', seccionId: 9 },
@@ -616,9 +616,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Tapas de luz flojas' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Tomacorrientes rotos o sueltos' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 8, descripcion: 'Tomacorrientes con chispazos o cables accesibles', esKillSwitch: true, motivoAlerta: 'Peligro de electrocución en tomas' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Tapas de luz flojas' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Tomacorrientes rotos o sueltos' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 8, descripcion: 'Tomacorrientes con chispazos o cables accesibles', esKillSwitch: true, motivoAlerta: 'Peligro de electrocución en tomas' } },
         ],
       },
       {
@@ -636,9 +636,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 3, descripcion: 'Tablero eléctrico desordenado sin rotular' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Tablero sin puerta o térmicas sobrecargadas' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 10, descripcion: 'Tablero en estado peligroso con bornes vivos expuestos' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 3, descripcion: 'Tablero eléctrico desordenado sin rotular' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Tablero sin puerta o térmicas sobrecargadas' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 10, descripcion: 'Tablero en estado peligroso con bornes vivos expuestos' } },
         ],
       },
       {
@@ -649,7 +649,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         esCritica: true,
         opciones: [
           { id: 'si', label: 'Sí, disyuntor probado con botón de test' },
-          { id: 'no', label: 'No posee disyuntor (peligro letal para las personas)', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 12, descripcion: 'Ausencia de disyuntor diferencial en tablero principal', esKillSwitch: true, motivoAlerta: 'Peligro letal: Tablero sin disyuntor diferencial' } },
+          { id: 'no', label: 'No posee disyuntor (peligro letal para las personas)', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 12, descripcion: 'Ausencia de disyuntor diferencial en tablero principal', esKillSwitch: true, motivoAlerta: 'Peligro letal: Tablero sin disyuntor diferencial' } },
         ],
       },
       {
@@ -659,7 +659,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 9,
         esCritica: true,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FODEMEP', puntosImpacto: 10, descripcion: 'Cables bajo tensión expuestos o empalmes con cinta aisladora floja', esKillSwitch: true, motivoAlerta: 'Cables bajo tensión expuestos' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'ELECTRICIDAD', criticidad: 'CRITICA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 10, descripcion: 'Cables bajo tensión expuestos o empalmes con cinta aisladora floja', esKillSwitch: true, motivoAlerta: 'Cables bajo tensión expuestos' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -680,8 +680,8 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 10,
         opciones: [
           { id: 'si', label: 'Sí, todas con carga y oblea vigente' },
-          { id: 'no', label: 'No, están vencidos', generaIncidencia: { tipo: 'MATAFUEGOS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Matafuegos con carga y oblea vencida' } },
-          { id: 'algunos', label: 'Algunos vencidos', generaIncidencia: { tipo: 'MATAFUEGOS', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 3, descripcion: 'Matafuegos con vencimiento parcial' } },
+          { id: 'no', label: 'No, están vencidos', generaIncidencia: { tipo: 'MATAFUEGOS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Matafuegos con carga y oblea vencida' } },
+          { id: 'algunos', label: 'Algunos vencidos', generaIncidencia: { tipo: 'MATAFUEGOS', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 3, descripcion: 'Matafuegos con vencimiento parcial' } },
         ],
       },
       {
@@ -691,7 +691,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 10,
         opciones: [
           { id: 'si', label: 'Sí, señalizadas, libres y con barral antipánico' },
-          { id: 'deficiente', label: 'Sí, pero con deficiencias (con candado, trabadas o sin señalizar)', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 5, descripcion: 'Salidas de emergencia trabadas o sin barral antipánico' } },
+          { id: 'deficiente', label: 'Sí, pero con deficiencias (con candado, trabadas o sin señalizar)', generaIncidencia: { tipo: 'HERRERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 5, descripcion: 'Salidas de emergencia trabadas o sin barral antipánico' } },
           { id: 'no', label: 'No cuenta con salidas de emergencia (solo puerta principal)', generaIncidencia: { tipo: 'OBRA', criticidad: 'ALTA', jurisdiccion: 'PROVINCIA_MAYOR', puntosImpacto: 5, descripcion: 'Sin salida de evacuación reglamentaria' } },
         ],
       },
@@ -718,7 +718,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 11,
         esCritica: true,
         opciones: [
-          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'PODA/CORTE DE PASTO', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Árboles de gran porte con ramas secas sobre patios o techos' } },
+          { id: 'si', label: 'Sí', generaIncidencia: { tipo: 'PODA/CORTE DE PASTO', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Árboles de gran porte con ramas secas sobre patios o techos' } },
           { id: 'no', label: 'No' },
         ],
       },
@@ -737,9 +737,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Baldosas sueltas en vereda externa' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Vereda rota con pozos y peligro de caída' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Destrucción masiva de vereda perimetral' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Baldosas sueltas en vereda externa' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Vereda rota con pozos y peligro de caída' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Destrucción masiva de vereda perimetral' } },
         ],
       },
     ],
@@ -758,7 +758,7 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         seccionId: 12,
         opciones: [
           { id: 'si', label: 'Sí' },
-          { id: 'no', label: 'No', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Falta rampa de acceso para sillas de ruedas' } },
+          { id: 'no', label: 'No', generaIncidencia: { tipo: 'ALBAÑILERIA', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Falta rampa de acceso para sillas de ruedas' } },
         ],
       },
       {
@@ -795,9 +795,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Mantenimiento de hornallas en cocina PAICOR' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Falla en termocuplas o quemadores de cocina' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Cocina industrial fuera de servicio' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Mantenimiento de hornallas en cocina PAICOR' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Falla en termocuplas o quemadores de cocina' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Cocina industrial fuera de servicio' } },
           { id: 'no', label: 'No posee' },
         ],
       },
@@ -816,9 +816,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Burletes gastados en heladera' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Pérdida de frío en heladera/freezer' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Heladera o freezer fuera de servicio' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Burletes gastados en heladera' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Pérdida de frío en heladera/freezer' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Heladera o freezer fuera de servicio' } },
           { id: 'no', label: 'No posee' },
         ],
       },
@@ -837,9 +837,9 @@ export const SECCIONES_RELEVAMIENTO: SeccionDef[] = [
         opciones: [
           { id: 'exc', label: 'Excelente' },
           { id: 'bue', label: 'Bueno' },
-          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'BAJA', jurisdiccion: 'FODEMEP', puntosImpacto: 2, descripcion: 'Limpieza de sarro en calefón' } },
-          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'MEDIA', jurisdiccion: 'FODEMEP', puntosImpacto: 4, descripcion: 'Goteo o falla de encendido en termotanque' } },
-          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'ALTA', jurisdiccion: 'FODEMEP', puntosImpacto: 6, descripcion: 'Sin agua caliente sanitaria en cocina' } },
+          { id: 'reg', label: 'Regular', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'BAJA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 2, descripcion: 'Limpieza de sarro en calefón' } },
+          { id: 'mal', label: 'Malo', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'MEDIA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 4, descripcion: 'Goteo o falla de encendido en termotanque' } },
+          { id: 'cri', label: 'Crítico', generaIncidencia: { tipo: 'REPARACION/MANTENIMIENTO DE ARTEFACTOS', criticidad: 'ALTA', jurisdiccion: 'FoDeMEEP', puntosImpacto: 6, descripcion: 'Sin agua caliente sanitaria en cocina' } },
           { id: 'no', label: 'No posee' },
         ],
       },

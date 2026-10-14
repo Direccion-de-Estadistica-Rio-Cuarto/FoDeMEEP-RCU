@@ -24,7 +24,7 @@ export type EstadoConservacion = 'Excelente' | 'Bueno' | 'Regular' | 'Malo' | 'C
 
 export type NivelCriticidad = 'BAJA' | 'MEDIA' | 'ALTA' | 'CRITICA';
 
-export type JurisdiccionResolucion = 'FODEMEP' | 'PROVINCIA_MAYOR' | 'COOPERADORA';
+export type JurisdiccionResolucion = 'FoDeMEEP' | 'PROVINCIA_MAYOR' | 'COOPERADORA';
 
 export type EstadoIncidencia = 'ABIERTA' | 'EN_CURSO' | 'RESUELTA_PARCIAL' | 'RESUELTA';
 

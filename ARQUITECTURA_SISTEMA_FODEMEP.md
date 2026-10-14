@@ -55,7 +55,7 @@ Para que el índice no sea estático, cada problema detectado en el relevamiento
 flowchart LR
     A["Relevamiento de Campo\n(166 ítems)"] --> B["Cálculo Línea Base\n(Índice Inicial ej: 58/100)"]
     B --> C["Generación de Incidencias\n(Catálogo de Hallazgos)"]
-    C --> D["Orden de Trabajo / Intervención\n(FODEMEP o Provincia)"]
+    C --> D["Orden de Trabajo / Intervención\n(FoDeMEEP o Provincia)"]
     D --> E{"Ejecución de Obra"}
     E -->|"Solución Parcial\n(ej. arreglado 5 de 10 estufas)"| F["Ajuste Proporcional del Subíndice\n(+4 puntos)"]
     E -->|"Solución Total\n(ej. tablero normalizado con disyuntor)"| G["Cierre de Incidencia y Retiro de Penalizador\n(+15 puntos)"]
@@ -140,7 +140,7 @@ erDiagram
         string seccion_origen
         string tipo_falla
         string gravedad "LEVE | MEDIA | ALTA | CRITICA"
-        string jurisdiccion "FODEMEP | PROVINCIA_MAYOR"
+        string jurisdiccion "FoDeMEEP | PROVINCIA_MAYOR"
         string estado "ABIERTA | EN_CURSO | RESUELTA_PARCIAL | RESUELTA"
         float impacto_puntos_indice
     }
@@ -152,7 +152,7 @@ erDiagram
         datetime fecha_inicio
         datetime fecha_fin
         decimal costo_ejecutado
-        string origen_fondos "FODEMEP | PROVINCIAL | COOPERADORA"
+        string origen_fondos "FoDeMEEP | PROVINCIAL | COOPERADORA"
         float porcentaje_avance
         string observaciones
     }

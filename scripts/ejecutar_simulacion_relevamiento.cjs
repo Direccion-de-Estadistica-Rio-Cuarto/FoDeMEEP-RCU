@@ -174,7 +174,7 @@ const incidencias = [
     titulo: 'Filtración pluvial en losa de SUM hacia sector norte',
     descripcion: 'Se detecta mancha de humedad activa con microgotera en cielo raso de yeso tras precipitaciones recientes. Requiere sellado e impermeabilización de junta de dilatación en cubierta.',
     severidad: 'MEDIA',
-    jurisdiccion: 'FODEMEP',
+    jurisdiccion: 'FoDeMEEP',
     estado: 'REPORTADA',
     costo_estimado: 185000.00,
     evidencia_asociada: true
@@ -189,7 +189,7 @@ const incidencias = [
     titulo: 'Calefactor tiro balanceado fuera de servicio en Sala 4 años',
     descripcion: 'Artefacto calefactor presenta falla en termocupla y piloto inestable. No hay fuga de gas, pero no mantiene encendido. Requiere service técnico gasista matriculado.',
     severidad: 'LEVE',
-    jurisdiccion: 'FODEMEP',
+    jurisdiccion: 'FoDeMEEP',
     estado: 'REPORTADA',
     costo_estimado: 45000.00,
     evidencia_asociada: false
@@ -204,7 +204,7 @@ const incidencias = [
     titulo: 'Deterioro superficial de pintura y salitre en zócalos de pasillo',
     descripcion: 'Desprendimiento localizado de pintura al látex en muros interiores por humedad de condensación invernal previa.',
     severidad: 'LEVE',
-    jurisdiccion: 'FODEMEP',
+    jurisdiccion: 'FoDeMEEP',
     estado: 'REPORTADA',
     costo_estimado: 95000.00,
     evidencia_asociada: false

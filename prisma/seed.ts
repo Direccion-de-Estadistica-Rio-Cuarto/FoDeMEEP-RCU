@@ -8,7 +8,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "PLOMERIA",
     "nombre": "Plomería y Grifería",
     "descripcion": "Reparación de cañerías, sanitarios, pérdidas de agua y grifería",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 1
   },
@@ -16,7 +16,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "ELECTRICIDAD",
     "nombre": "Electricidad e Iluminación",
     "descripcion": "Tableros, disyuntores diferenciales, cableados, luminarias y tomas",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "GRAVE",
     "orden": 2
   },
@@ -24,7 +24,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "HERRERIA",
     "nombre": "Herrería y Seguridad perimetral",
     "descripcion": "Rejas, portones, barandas, cerramientos y aberturas metálicas",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 3
   },
@@ -32,7 +32,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "GAS",
     "nombre": "Gas y Calefacción",
     "descripcion": "Fugas, calefactores de tiro balanceado, reguladores y pruebas de hermeticidad",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "CRITICA",
     "orden": 4
   },
@@ -40,7 +40,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "DESINFECCION",
     "nombre": "Desinfección y Control de Plagas",
     "descripcion": "Fumigación, desratización y control vectorial periódico",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 5
   },
@@ -48,7 +48,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "VARIOS",
     "nombre": "Mantenimiento General / Varios",
     "descripcion": "Cerrajería, vidrios, ajustes menores y reparaciones generales",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "LEVE",
     "orden": 6
   },
@@ -56,7 +56,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "PINTURA",
     "nombre": "Pintura",
     "descripcion": "Pintura interior de aulas, galerías, fachadas y señalización de seguridad",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "LEVE",
     "orden": 7
   },
@@ -64,7 +64,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "ALBANILERIA",
     "nombre": "Albañilería",
     "descripcion": "Revoques, mampostería, solados, contrapisos y fisuras no estructurales",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 8
   },
@@ -72,7 +72,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "REPARACION_ARTEFACTOS",
     "nombre": "Reparación y Mantenimiento de Artefactos",
     "descripcion": "Service técnico a cocinas, anafes, termotanques y calderas",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 9
   },
@@ -80,7 +80,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "FILTRACIONES",
     "nombre": "Filtraciones y Cubiertas",
     "descripcion": "Impermeabilización de losas, reparación de chapas, canaletas y goteras",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "GRAVE",
     "orden": 10
   },
@@ -88,7 +88,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "MATAFUEGOS",
     "nombre": "Matafuegos y Seguridad Siniestral",
     "descripcion": "Recarga anual, verificación de manómetros, cartelería de evacuación",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "GRAVE",
     "orden": 11
   },
@@ -96,7 +96,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "PODA_CORTE_PASTO",
     "nombre": "Poda y Desmalezado",
     "descripcion": "Corte de césped en patios, desmalezado y poda de ramas con riesgo sobre techos o cableado",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "LEVE",
     "orden": 12
   },
@@ -104,7 +104,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "BOMBA",
     "nombre": "Bomba de Agua",
     "descripcion": "Reparación o recambio de bombas elevadoras y presurizadoras de agua",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "GRAVE",
     "orden": 13
   },
@@ -112,7 +112,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "LIMPIEZA_TANQUE",
     "nombre": "Limpieza de Tanque / Cisterna",
     "descripcion": "Vaciado, desinfección, cloración y sellado hermético de tanques",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "GRAVE",
     "orden": 14
   },
@@ -120,7 +120,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "MOBILIARIO",
     "nombre": "Mobiliario Escolar",
     "descripcion": "Reparación de bancos, sillas, pupitres, pizarrones y armarios",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "LEVE",
     "orden": 15
   },
@@ -128,7 +128,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "DESAGOTE",
     "nombre": "Desagote de Pozos y Cámaras",
     "descripcion": "Servicio atmosférico para desagote de pozos negros y cámaras sépticas",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "GRAVE",
     "orden": 16
   },
@@ -136,7 +136,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "LIMPIEZA_DESAGUES",
     "nombre": "Limpieza de Desagües y Pluviales",
     "descripcion": "Desobstrucción de pluviales, rejillas de patio, canaletas y bajadas",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 17
   },
@@ -152,7 +152,7 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "CLIMATIZACION",
     "nombre": "Adquisición de Artefactos de Climatización",
     "descripcion": "Ventiladores industriales de pared, aire acondicionado o calefacción central",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "MEDIA",
     "orden": 19
   },
@@ -160,14 +160,14 @@ const CATALOGO_INCIDENCIAS = [
     "codigo": "CAMION_CISTERNA",
     "nombre": "Provisión por Camión Cisterna",
     "descripcion": "Suministro de emergencia de agua potable ante corte o rotura de red",
-    "jurisdiccion": "FODEMEP",
+    "jurisdiccion": "FoDeMEEP",
     "severidad": "CRITICA",
     "orden": 20
   }
 ];
 
 async function main() {
-  console.log('Iniciando Seeding FODEMEP...');
+  console.log('Iniciando Seeding FoDeMEEP...');
 
   // 1. Cargar Catálogo Oficial de 20 Incidencias
   for (const cat of CATALOGO_INCIDENCIAS) {
@@ -199,7 +199,7 @@ async function main() {
     create: {
       id: '00000000-0000-0000-0000-000000000001',
       email: 'inspector.fodemep@riocuarto.gov.ar',
-      nombreCompleto: 'Técnico de Campo FODEMEP',
+      nombreCompleto: 'Técnico de Campo FoDeMEEP',
       rol: RolUsuario.INSPECTOR_CAMPO,
       telefono: '358-4000000',
       activo: true

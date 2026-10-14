@@ -7,7 +7,6 @@ import { MenuSecciones } from './components/MenuSecciones';
 import { SeccionDetalle } from './components/SeccionDetalle';
 import { ResumenAuditoria } from './components/ResumenAuditoria';
 import { ModalSelectorEscuela } from './components/ModalSelectorEscuela';
-import { TablaHojaCalculo } from './components/TablaHojaCalculo';
 import { calcularIndiceInstitucional } from './services/engineIndice';
 import {
   guardarBorradorEnStorage,
@@ -23,7 +22,6 @@ export function App() {
   const [vista, setVista] = useState<'menu' | 'seccion' | 'auditoria'>('menu');
   const [seccionActivaId, setSeccionActivaId] = useState<number>(1);
   const [mostrarSelectorEscuela, setMostrarSelectorEscuela] = useState(false);
-  const [mostrarVisorBBDD, setMostrarVisorBBDD] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Escuchar estado de conectividad en el teléfono
@@ -162,7 +160,6 @@ export function App() {
           setVista('menu');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onAbrirVisorBBDD={() => setMostrarVisorBBDD(true)}
       />
 
       <main className="flex-1">
@@ -181,7 +178,6 @@ export function App() {
               setVista('auditoria');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            onAbrirVisorBBDD={() => setMostrarVisorBBDD(true)}
           />
         )}
 
@@ -260,16 +256,6 @@ export function App() {
           escuelaActualId={escuelaActual.id}
           onSeleccionar={handleCambiarEscuela}
           onCerrar={() => setMostrarSelectorEscuela(false)}
-        />
-      )}
-
-      {/* Tabla Simple al Estilo Hoja de Cálculo (Excel / Google Sheets) */}
-      {mostrarVisorBBDD && (
-        <TablaHojaCalculo
-          escuela={escuelaActual}
-          borrador={borrador}
-          resultadoIndice={resultadoIndice}
-          onCerrar={() => setMostrarVisorBBDD(false)}
         />
       )}
     </div>

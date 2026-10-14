@@ -10,7 +10,6 @@ interface HeaderMovilProps {
   isOffline: boolean;
   seccionActivaNombre?: string;
   onVolver?: () => void;
-  onAbrirVisorBBDD?: () => void;
 }
 
 export const HeaderMovil: React.FC<HeaderMovilProps> = ({
@@ -20,7 +19,6 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
   isOffline,
   seccionActivaNombre,
   onVolver,
-  onAbrirVisorBBDD,
 }) => {
   const { isOscuro, toggleTema } = useTema();
 
@@ -84,19 +82,6 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
               <Icono name="wifi" size={14} className="text-emerald-300" />
               <span className="hidden sm:inline">En Línea</span>
             </span>
-          )}
-
-          {/* Botón Hoja de Cálculo estilo Excel */}
-          {onAbrirVisorBBDD && (
-            <button
-              type="button"
-              onClick={onAbrirVisorBBDD}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 active:bg-emerald-800 text-white border border-emerald-400/50 text-xs font-bold transition-all cursor-pointer shadow-xs"
-              title="Abrir tabla simple al estilo hoja de cálculo (Excel / Sheets)"
-            >
-              <span className="text-sm">📊</span>
-              <span className="hidden sm:inline">Hoja de Cálculo</span>
-            </button>
           )}
 
           {/* Botón oficial de Tema Claro / Oscuro con Material Symbols */}

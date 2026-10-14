@@ -9,7 +9,6 @@ interface MenuSeccionesProps {
   resultadoIndice: ResultadoIndice;
   onSeleccionarSeccion: (seccionId: number) => void;
   onIrAAuditoria: () => void;
-  onAbrirVisorBBDD?: () => void;
 }
 
 // Mapeo a la paleta de series oficial de la Dirección de Estadística
@@ -36,7 +35,6 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
   resultadoIndice,
   onSeleccionarSeccion,
   onIrAAuditoria,
-  onAbrirVisorBBDD,
 }) => {
   const getIconoSeccion = (icono: string) => {
     switch (icono) {
@@ -148,40 +146,6 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
           </div>
         </div>
       </section>
-
-      {/* 2.5 Banner Acceso a Hoja de Cálculo en Tiempo Real */}
-      {onAbrirVisorBBDD && (
-        <div
-          onClick={onAbrirVisorBBDD}
-          className="panel bg-gradient-to-r from-emerald-950 to-slate-900 text-white border border-emerald-500/40 hover:border-emerald-400 p-3.5 flex items-center justify-between gap-3 cursor-pointer shadow-sm hover:shadow-md transition-all group"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/40 flex items-center justify-center flex-shrink-0 text-xl group-hover:scale-105 transition-transform">
-              📊
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-xs sm:text-sm text-white truncate">
-                  Tabla en Tiempo Real (Estilo Hoja de Cálculo)
-                </h3>
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-400 text-slate-950">
-                  EN VIVO
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-300 truncate">
-                Vea las preguntas y respuestas organizadas en filas y columnas como en Excel
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="px-2.5 py-1.5 bg-[#107c41] hover:bg-[#15944f] text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1">
-              <span>Abrir Planilla</span>
-              <Icono name="arrow_forward" size={14} />
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* 3. Lista de las 14 Secciones */}
       <div className="space-y-3">

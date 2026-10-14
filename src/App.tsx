@@ -11,7 +11,11 @@ import { calcularIndiceInstitucional } from './services/engineIndice';
 import {
   guardarBorradorEnStorage,
   cargarBorradorDeStorage,
+  limpiarDatosEjemploPrevios,
 } from './services/storageLocal';
+
+// Limpiar datos de ejemplo antiguos en memoria local
+limpiarDatosEjemploPrevios();
 
 export function App() {
   const [escuelaActual, setEscuelaActual] = useState<Escuela>(ESCUELAS_RIO_CUARTO[0]);
@@ -32,7 +36,7 @@ export function App() {
     };
   }, []);
 
-  // Estado del borrador actual
+  // Estado del borrador actual (inicia 100% en cero para nuevo relevamiento)
   const [borrador, setBorrador] = useState<RelevamientoBorrador>(() => {
     const guardado = cargarBorradorDeStorage(ESCUELAS_RIO_CUARTO[0].id);
     if (guardado) return guardado;
@@ -41,71 +45,7 @@ export function App() {
       escuelaId: ESCUELAS_RIO_CUARTO[0].id,
       tecnicoNombre: 'Técnico Relevador FoDeMEEP',
       fecha: new Date().toISOString().split('T')[0],
-      respuestas: {
-        1: `${ESCUELAS_RIO_CUARTO[0].nombre} - CUE: ${ESCUELAS_RIO_CUARTO[0].cue}`,
-        2: ESCUELAS_RIO_CUARTO[0].director,
-        3: 'Técnico FoDeMEEP Río Cuarto',
-        4: new Date().toLocaleDateString('es-AR'),
-        5: ESCUELAS_RIO_CUARTO[0].telefono,
-        6: ESCUELAS_RIO_CUARTO[0].email,
-        7: 26,
-        8: 18,
-        9: 'si',
-        10: 18,
-        15: 'ant_3',
-        16: ESCUELAS_RIO_CUARTO[0].superficieM2 ?? 1500,
-        18: ESCUELAS_RIO_CUARTO[0].matricula,
-        23: 'reg',
-        25: 'no',
-        27: 'bue',
-        30: 'reg',
-        32: 'no',
-        36: 'bue',
-        39: 'bue',
-        42: 'gn',
-        43: 'si',
-        45: 'bue',
-        46: 'no',
-        51: 'todos',
-        52: 'adecuada',
-        57: 'red',
-        58: 'bue',
-        59: 'no',
-        60: 'bue',
-        66: 12,
-        69: 2,
-        70: 'no',
-        80: 24,
-        81: 22,
-        87: 2,
-        88: 1,
-        89: 'bue',
-        90: 'si',
-        91: 'b_2',
-        93: 'bue',
-        98: 14,
-        99: 13,
-        106: 'bue',
-        112: 'led',
-        113: 'bue',
-        114: 70,
-        115: 4,
-        116: 'bue',
-        117: 'bue',
-        118: 'si',
-        119: 'no',
-        126: 10,
-        127: 'si',
-        136: 'si',
-        141: 'si',
-        143: 'no',
-        144: 'bue',
-        148: 'si',
-        152: 'si',
-        159: 'bue',
-        162: 'bue',
-        163: 'bue',
-      },
+      respuestas: {},
       fotos: [],
       seccionesCompletas: [],
       fechaUltimaModificacion: Date.now(),
@@ -129,17 +69,7 @@ export function App() {
         escuelaId: nuevaEscuela.id,
         tecnicoNombre: 'Técnico Relevador FoDeMEEP',
         fecha: new Date().toISOString().split('T')[0],
-        respuestas: {
-          1: `${nuevaEscuela.nombre} - CUE: ${nuevaEscuela.cue}`,
-          2: nuevaEscuela.director,
-          3: 'Técnico FoDeMEEP Río Cuarto',
-          4: new Date().toLocaleDateString('es-AR'),
-          5: nuevaEscuela.telefono,
-          6: nuevaEscuela.email,
-          16: nuevaEscuela.superficieM2 ?? 1500,
-          18: nuevaEscuela.matricula,
-        },
-
+        respuestas: {},
         fotos: [],
         seccionesCompletas: [],
         fechaUltimaModificacion: Date.now(),

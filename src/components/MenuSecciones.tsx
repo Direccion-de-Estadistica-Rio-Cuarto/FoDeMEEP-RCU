@@ -93,9 +93,11 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
         {/* KPI 1: Índice IES */}
         <div className="kpi shadow-xs">
           <p className="etiqueta truncate">Índice IES</p>
-          <div className="valor">{resultadoIndice.global}</div>
+          <div className="valor">{totalRespondidas === 0 ? '--' : resultadoIndice.global}</div>
           <div className="detalle mt-1">
-            {resultadoIndice.penalizadoresAplicados.length > 0 ? (
+            {totalRespondidas === 0 ? (
+              <span className="estado estado--neutro text-[10px] px-1.5 py-0.5">Sin iniciar</span>
+            ) : resultadoIndice.penalizadoresAplicados.length > 0 ? (
               <span className="estado estado--grave text-[10px] px-1.5 py-0.5">Crítico</span>
             ) : resultadoIndice.global >= 70 ? (
               <span className="estado estado--ok text-[10px] px-1.5 py-0.5">Óptimo</span>

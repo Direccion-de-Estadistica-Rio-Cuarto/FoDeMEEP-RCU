@@ -9,7 +9,25 @@ import {
 export * from './indexedDbEngine';
 export * from './syncManager';
 
-const STORAGE_PREFIX = 'fodemep_relevamiento_';
+const STORAGE_PREFIX = 'fodemep_relevamiento_v2_';
+
+/**
+ * Limpia cualquier dato residual de prueba/ejemplo almacenado previamente en el navegador.
+ */
+export function limpiarDatosEjemploPrevios(): void {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('fodemep_relevamiento_') && !k.startsWith('fodemep_relevamiento_v2_'))) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch (err) {
+    console.warn('Error al limpiar datos antiguos:', err);
+  }
+}
 
 /**
  * Guarda el borrador de manera inmediata en localStorage (para rendimiento táctil < 16ms)

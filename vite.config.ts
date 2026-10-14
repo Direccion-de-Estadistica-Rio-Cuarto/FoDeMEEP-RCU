@@ -6,6 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/FoDeMEEP-RCU/' : '/',
   server: {
+    watch: {
+      ignored: ['**/mapas_rcu/**', '**/data_raw/**', '**/*.cst', '**/*.shp', '**/*.dbf', '**/*.shx'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

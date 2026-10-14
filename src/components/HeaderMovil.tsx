@@ -86,16 +86,16 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
             </span>
           )}
 
-          {/* Botón Visor de Base de Datos en Tiempo Real */}
+          {/* Botón Hoja de Cálculo estilo Excel */}
           {onAbrirVisorBBDD && (
             <button
               type="button"
               onClick={onAbrirVisorBBDD}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 active:bg-white/40 text-white border border-white/30 text-xs font-bold transition-all cursor-pointer shadow-xs"
-              title="Abrir Visor de Base de Datos en Tiempo Real"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 active:bg-emerald-800 text-white border border-emerald-400/50 text-xs font-bold transition-all cursor-pointer shadow-xs"
+              title="Abrir tabla simple al estilo hoja de cálculo (Excel / Sheets)"
             >
-              <span className="text-sm">🗄️</span>
-              <span className="hidden sm:inline">BBDD en Vivo</span>
+              <span className="text-sm">📊</span>
+              <span className="hidden sm:inline">Hoja de Cálculo</span>
             </button>
           )}
 

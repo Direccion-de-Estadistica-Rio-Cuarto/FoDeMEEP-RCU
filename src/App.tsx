@@ -7,7 +7,7 @@ import { MenuSecciones } from './components/MenuSecciones';
 import { SeccionDetalle } from './components/SeccionDetalle';
 import { ResumenAuditoria } from './components/ResumenAuditoria';
 import { ModalSelectorEscuela } from './components/ModalSelectorEscuela';
-import { ModalVisorBBDD } from './components/ModalVisorBBDD';
+import { TablaHojaCalculo } from './components/TablaHojaCalculo';
 import { calcularIndiceInstitucional } from './services/engineIndice';
 import {
   guardarBorradorEnStorage,
@@ -263,14 +263,12 @@ export function App() {
         />
       )}
 
-      {/* Modal Visor de Base de Datos en Tiempo Real */}
+      {/* Tabla Simple al Estilo Hoja de Cálculo (Excel / Google Sheets) */}
       {mostrarVisorBBDD && (
-        <ModalVisorBBDD
+        <TablaHojaCalculo
           escuela={escuelaActual}
           borrador={borrador}
           resultadoIndice={resultadoIndice}
-          onCargarSimulacion={handleCargarSimulacion}
-          onLimpiarDatos={handleLimpiarDatos}
           onCerrar={() => setMostrarVisorBBDD(false)}
         />
       )}

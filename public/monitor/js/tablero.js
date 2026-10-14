@@ -416,18 +416,24 @@
     });
   }
 
+  function obtenerIdEscuelaBorrador(b) {
+    if (!b || typeof b !== 'object') return null;
+    return b.institucionId || b.escuelaId || b.institucionCue || null;
+  }
+
   function aplicarListaBorradores(listaBorradores, reRenderizar) {
     if (!ESTADO.bbdd || !Array.isArray(listaBorradores) || listaBorradores.length === 0) return false;
     let huboCambios = false;
     let ultimaInstImpactada = null;
 
     listaBorradores.forEach(function (b) {
-      if (!b || !b.escuelaId) return;
-      const inst = buscarInstitucionPorBorrador(b.escuelaId);
+      const idEsc = obtenerIdEscuelaBorrador(b);
+      if (!idEsc) return;
+      const inst = buscarInstitucionPorBorrador(idEsc);
       if (inst) {
         const aplicado = evaluarBorradorSobreInstitucion(inst, b);
         if (aplicado) {
-          ESTADO.borradoresActivos[b.escuelaId] = b;
+          ESTADO.borradoresActivos[inst.id] = b;
           huboCambios = true;
           ultimaInstImpactada = inst;
         }
@@ -464,7 +470,7 @@
           const raw = localStorage.getItem(k);
           if (raw) {
             const b = JSON.parse(raw);
-            if (b && b.escuelaId) recolectados.push(b);
+            if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
           }
         }
       }
@@ -486,7 +492,7 @@
           };
         });
         desdeIDB.forEach(function (b) {
-          if (b && b.escuelaId) recolectados.push(b);
+          if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
         });
       }
     } catch (e) {}
@@ -498,7 +504,7 @@
         const data = await resp.json();
         if (data && data.activos) {
           Object.values(data.activos).forEach(function (b) {
-            if (b && b.escuelaId) recolectados.push(b);
+            if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
           });
         }
       }
@@ -510,15 +516,14 @@
       if (respCloud.ok) {
         const textCloud = await respCloud.text();
         if (textCloud && textCloud.trim()) {
-          textCloud.trim().split('
-').forEach(function (line) {
+          textCloud.trim().split(String.fromCharCode(10)).forEach(function (line) {
             try {
               const evt = JSON.parse(line);
               if (evt && evt.event === 'message' && evt.message) {
                 const parsed = JSON.parse(evt.message);
-                if (parsed && parsed.escuelaId) recolectados.push(parsed);
+                if (obtenerIdEscuelaBorrador(parsed)) recolectados.push(parsed);
                 else if (parsed && Array.isArray(parsed.borradores)) {
-                  parsed.borradores.forEach(function (x) { if (x && x.escuelaId) recolectados.push(x); });
+                  parsed.borradores.forEach(function (x) { if (obtenerIdEscuelaBorrador(x)) recolectados.push(x); });
                 }
               }
             } catch (errLine) {}
@@ -546,7 +551,7 @@
       if (ev.key && ev.key.indexOf('fodemep_relevamiento_v2_') === 0 && ev.newValue) {
         try {
           const b = JSON.parse(ev.newValue);
-          if (b && b.escuelaId) aplicarListaBorradores([b], true);
+          if (obtenerIdEscuelaBorrador(b)) aplicarListaBorradores([b], true);
         } catch (e) {}
       }
     });
@@ -583,7 +588,7 @@
           try {
             const parsed = JSON.parse(ev.data);
             const payload = (parsed && parsed.message) ? JSON.parse(parsed.message) : parsed;
-            if (payload && payload.escuelaId) {
+            if (obtenerIdEscuelaBorrador(payload)) {
               aplicarListaBorradores([payload], true);
             } else if (payload && Array.isArray(payload.borradores)) {
               aplicarListaBorradores(payload.borradores, true);
@@ -2442,18 +2447,18 @@
     "totalModalidadComun": 84,
     "matriculaTotalAlcanzada": 30224,
     "alumnosDiscapacidadTotal": 531,
-    "promedioIesGlobal": 97,
+    "promedioIesGlobal": 66,
     "conteoSemaforo": {
-      "Optimo": 1,
+      "Optimo": 0,
       "Bueno": 0,
-      "Regular": 0,
-      "Critico": 0,
+      "Regular": 1,
+      "Critico": 1,
       "SinRelevar": 125
     },
-    "alertasKillSwitchActivas": 0,
+    "alertasKillSwitchActivas": 1,
     "demarcacionCompetencias": {
       "fodemeepMunicipal": {
-        "IncidenciasActivas": 3,
+        "IncidenciasActivas": 5,
         "PresupuestoEstimadoARS": 0,
         "IntervencionesHistoricas": 0,
         "Alcance": "Mantenimiento preventivo y correctivo descentralizado: plomería, electricidad, tableros, gas NAG-200, calefactores, filtraciones localizadas, herrería, limpieza de tanques, desinfección, matafuegos y desmalezado."
@@ -2563,7 +2568,7 @@
       "seccionId": 4,
       "seccion": "Instalación de Gas",
       "dimension": "seguridadCritica",
-      "frecuenciaHistorica": 0,
+      "frecuenciaHistorica": 1,
       "jurisdiccion": "FoDeMEEP",
       "severidadDefault": "CRITICA",
       "cuadrilla": "Gasista Matriculado Categoría 1ª",
@@ -2719,7 +2724,7 @@
       "seccionId": 5,
       "seccion": "Red Cloacal y Efluentes",
       "dimension": "aguaSaneamiento",
-      "frecuenciaHistorica": 0,
+      "frecuenciaHistorica": 1,
       "jurisdiccion": "FoDeMEEP",
       "severidadDefault": "GRAVE",
       "cuadrilla": "Servicio de Camión Atmosférico Municipal",
@@ -2781,16 +2786,16 @@
   ],
   "serieHistoricaGlobal": [
     {
-      "mes": "2026-10-14",
-      "periodo": "Relevamiento 2026-10-14",
-      "fecha": "2026-10-14",
-      "hito": "1 establecimiento(s) relevado(s) en campo (3 hallazgos)",
-      "iesPromedio": 97,
-      "optimas": 1,
+      "mes": "no",
+      "periodo": "Relevamiento no",
+      "fecha": "no",
+      "hito": "1 establecimiento(s) relevado(s) en campo (5 hallazgos)",
+      "iesPromedio": 66,
+      "optimas": 0,
       "buenas": 0,
-      "regulares": 0,
-      "criticas": 0,
-      "escuelasCriticas": 0,
+      "regulares": 1,
+      "criticas": 1,
+      "escuelasCriticas": 1,
       "ordenesCerradas": 0,
       "intervencionesAcumuladas": 1
     }
@@ -4470,27 +4475,27 @@
       "tieneBanoAdaptado": true,
       "tieneSillaRuedas": false,
       "relevamiento": {
-        "id": "REL-2026-140581800",
-        "fecha": "2026-10-14",
-        "tecnico": "Franco Campetelli",
+        "id": "REL-140581800-RAYITO-20261014",
+        "fecha": "no",
+        "tecnico": "no",
         "estado": "CONSOLIDADO",
-        "hashIntegridad": "a94f82e710c4b319",
-        "superficieM2": 0,
-        "calefactoresFuncionando": 6,
+        "hashIntegridad": "sello-sha256-ver",
+        "superficieM2": null,
+        "calefactoresFuncionando": 0,
         "calefactoresAveriados": 0,
-        "respuestasCargadas": 48,
+        "respuestasCargadas": 62,
         "fotosCargadas": 0
       },
       "ies": {
-        "global": 97,
-        "puntajeBase": 96.8,
-        "clasificacion": "Óptimo",
-        "tieneKillSwitch": false,
-        "factorKillSwitch": 1,
-        "motivoKillSwitch": null,
+        "global": 66,
+        "puntajeBase": 87.9,
+        "clasificacion": "Regular",
+        "tieneKillSwitch": true,
+        "factorKillSwitch": 0.75,
+        "motivoKillSwitch": "Pérdida o fuga de gas reportada",
         "subindices": {
-          "seguridadCritica": 100,
-          "aguaSaneamiento": 100,
+          "seguridadCritica": 74,
+          "aguaSaneamiento": 88,
           "estructuraCubiertas": 82,
           "climatizacion": 100,
           "alimentacionCocina": 100,
@@ -4500,16 +4505,16 @@
       },
       "historialIes": [
         {
-          "periodo": "Relevamiento 2026-10-14",
-          "fecha": "2026-10-14",
-          "indiceAnterior": 97,
-          "indiceNuevo": 97,
+          "periodo": "Relevamiento no",
+          "fecha": "no",
+          "indiceAnterior": 66,
+          "indiceNuevo": 66,
           "variacion": 0,
-          "ies": 97,
-          "ordenTrabajo": "REL-2026-140581800",
+          "ies": 66,
+          "ordenTrabajo": "REL-140581800-RAYITO-20261014",
           "jurisdiccion": "FoDeMEEP",
-          "motivo": "Relevamiento técnico in situ (48 respuestas · 3 hallazgos)",
-          "hito": "Relevamiento in situ (48 respuestas · 3 hallazgos)"
+          "motivo": "Relevamiento técnico in situ (62 respuestas · 5 hallazgos)",
+          "hito": "Relevamiento in situ (62 respuestas · 5 hallazgos)"
         }
       ],
       "incidencias": [
@@ -4536,7 +4541,7 @@
           "factorPenalizacion": 1,
           "motivoKillSwitch": null,
           "costoEstimado": 0,
-          "fechaDeteccion": "2026-10-14"
+          "fechaDeteccion": "no"
         },
         {
           "id": "INC-ESC-140581800-P25",
@@ -4561,7 +4566,7 @@
           "factorPenalizacion": 1,
           "motivoKillSwitch": null,
           "costoEstimado": 0,
-          "fechaDeteccion": "2026-10-14"
+          "fechaDeteccion": "no"
         },
         {
           "id": "INC-ESC-140581800-P36",
@@ -4586,11 +4591,64 @@
           "factorPenalizacion": 1,
           "motivoKillSwitch": null,
           "costoEstimado": 0,
-          "fechaDeteccion": "2026-10-14"
+          "fechaDeteccion": "no"
+        },
+        {
+          "id": "INC-ESC-140581800-P46",
+          "tipoId": "GAS",
+          "tipoCodigo": "GAS",
+          "tipoNombre": "GAS",
+          "titulo": "Olor a gas o fuga reportada activa",
+          "descripcion": "Sec. 4 (Instalaciones de Gas) · Pregunta N° 46",
+          "seccion": "Sec. 4 (Instalaciones de Gas)",
+          "dimensionAfectada": "seguridadCritica",
+          "criticidad": "CRITICA",
+          "severidad": "CRITICA",
+          "jurisdiccion": "FoDeMEEP",
+          "cuadrilla": "Gasista matriculado / inspección NAG-200",
+          "estado": "ABIERTA",
+          "avance": 0,
+          "avancePorcentaje": 0,
+          "puntosRecuperables": 12,
+          "impactoPuntosIes": 12,
+          "esKillSwitch": true,
+          "factorKillSwitch": 0.75,
+          "factorPenalizacion": 0.75,
+          "motivoKillSwitch": "Pérdida o fuga de gas reportada",
+          "costoEstimado": 0,
+          "fechaDeteccion": "no"
+        },
+        {
+          "id": "INC-ESC-140581800-P59",
+          "tipoId": "DESAGOTE",
+          "tipoCodigo": "DESAGOTE",
+          "tipoNombre": "DESAGOTE",
+          "titulo": "Desbordes u olores cloacales en el edificio",
+          "descripcion": "Sec. 5 (Cloacas y Desagües) · Pregunta N° 59",
+          "seccion": "Sec. 5 (Cloacas y Desagües)",
+          "dimensionAfectada": "aguaSaneamiento",
+          "criticidad": "ALTA",
+          "severidad": "ALTA",
+          "jurisdiccion": "FoDeMEEP",
+          "cuadrilla": "Camión atmosférico municipal",
+          "estado": "ABIERTA",
+          "avance": 0,
+          "avancePorcentaje": 0,
+          "puntosRecuperables": 5,
+          "impactoPuntosIes": 5,
+          "esKillSwitch": false,
+          "factorKillSwitch": 1,
+          "factorPenalizacion": 1,
+          "motivoKillSwitch": null,
+          "costoEstimado": 0,
+          "fechaDeteccion": "no"
         }
       ],
       "barrioAnterior": "No Aplica",
-      "codvec": 0
+      "codvec": 0,
+      "director": "no",
+      "telefono": "no",
+      "email": "si"
     },
     {
       "id": "ESC-149000500",
@@ -9820,14 +9878,14 @@
   ],
   "resumenGlobal": {
     "institucionesRelevadas": 1,
-    "iesPromedioCiudad": 97,
-    "escuelasOptimas": 1,
+    "iesPromedioCiudad": 66,
+    "escuelasOptimas": 0,
     "escuelasBuenas": 0,
-    "escuelasRegulares": 0,
-    "escuelasCriticas": 0,
-    "escuelasConKillSwitch": 0,
-    "totalIncidenciasActivas": 3,
-    "incidenciasFodemeep": 3,
+    "escuelasRegulares": 1,
+    "escuelasCriticas": 1,
+    "escuelasConKillSwitch": 1,
+    "totalIncidenciasActivas": 5,
+    "incidenciasFodemeep": 5,
     "incidenciasProvincia": 0
   }
 };

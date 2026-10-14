@@ -10,6 +10,11 @@
   const STORAGE_PREFIX = 'fodemep_relevamiento_v2_';
   const DB_NOMBRE = 'FoDeMEEP_CAMPO_DB';
 
+  function obtenerIdEsc(b) {
+    if (!b || typeof b !== 'object') return null;
+    return b.institucionId || b.escuelaId || b.institucionCue || null;
+  }
+
   function leerLocalStorage() {
     const lista = [];
     try {
@@ -19,7 +24,7 @@
           const raw = localStorage.getItem(k);
           if (raw) {
             const b = JSON.parse(raw);
-            if (b && b.escuelaId) lista.push(b);
+            if (obtenerIdEsc(b)) lista.push(b);
           }
         }
       }
@@ -53,15 +58,13 @@
     const desdeIDB = await leerIndexedDB();
 
     desdeIDB.concat(desdeLS).forEach((b) => {
-      if (!b || !b.escuelaId) return;
-      const resp = b.respuestas || {};
-      const nResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '').length;
+      const idEsc = obtenerIdEsc(b);
+      if (!idEsc) return;
+      const resp = b.Respuestas || b.respuestas || {};
+      const nResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '' && resp[k] !== 'na').length;
       const nFotos = (b.fotos || []).length;
       if (nResp > 0 || nFotos > 0) {
-        const prev = porEscuela[b.escuelaId];
-        if (!prev || (b.fechaUltimaModificacion || 0) >= (prev.fechaUltimaModificacion || 0)) {
-          porEscuela[b.escuelaId] = b;
-        }
+        porEscuela[idEsc] = b;
       }
     });
 

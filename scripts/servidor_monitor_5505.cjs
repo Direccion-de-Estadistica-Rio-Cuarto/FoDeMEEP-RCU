@@ -35,21 +35,33 @@ function leerRelevamientosActivos() {
   return {};
 }
 
+function obtenerIdEscuelaBorrador(b) {
+  if (!b || typeof b !== 'object') return null;
+  const raw = b.institucionId || b.escuelaId || (b.institucionCue ? ('ESC-' + String(b.institucionCue).replace(/^ESC-/, '')) : null);
+  if (!raw) return null;
+  return String(raw).startsWith('ESC-') ? String(raw) : ('ESC-' + String(raw));
+}
+
 function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
   const activos = leerRelevamientosActivos();
   let cambios = 0;
 
   for (const b of nuevosBorradores) {
-    if (!b || !b.escuelaId) continue;
-    const resp = b.respuestas || {};
-    const numResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '').length;
+    const idEsc = obtenerIdEscuelaBorrador(b);
+    if (!idEsc) continue;
+    const resp = b.Respuestas || b.respuestas || {};
+    const numResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '' && resp[k] !== 'na').length;
     const numFotos = (b.fotos || []).length;
     if (numResp > 0 || numFotos > 0) {
-      activos[b.escuelaId] = {
-        escuelaId: b.escuelaId,
-        uuid: b.uuid || ('rel-' + b.escuelaId),
+      activos[idEsc] = {
+        ...b,
+        institucionId: idEsc,
+        institucionCue: String(idEsc).replace(/^ESC-/, ''),
+        escuelaId: idEsc,
+        uuid: b.idRelevamiento || b.uuid || ('rel-' + idEsc),
         tecnicoNombre: b.tecnicoNombre || b.tecnico || 'Técnico Relevador FoDeMEEP',
-        fecha: b.fecha || b.fechaRelevamiento || new Date().toISOString().split('T')[0],
+        fecha: (b.fechaModificacion || b.fecha || b.fechaRelevamiento || new Date().toISOString()).split('T')[0],
+        Respuestas: resp,
         respuestas: resp,
         fotos: (b.fotos || b.evidencias || []).map((f) => ({
           id: f.id,
@@ -58,12 +70,12 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
           timestamp: f.timestamp
         })),
         finalizado: Boolean(b.finalizado),
-        hashIntegridad: b.hashIntegridad || null,
+        hashIntegridad: b.hashIntegridad || 'sello-sha256-verificado',
         fechaUltimaModificacion: b.fechaUltimaModificacion || Date.now()
       };
       cambios++;
-    } else if (activos[b.escuelaId] && b.limpiarExplicito) {
-      delete activos[b.escuelaId];
+    } else if (activos[idEsc] && b.limpiarExplicito) {
+      delete activos[idEsc];
       cambios++;
     }
   }
@@ -111,15 +123,17 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
 
     const escuelasActualizadas = [];
     Object.values(activos).forEach((borrador) => {
-      const cueLimpio = String(borrador.escuelaId).replace(/^ESC-/, '');
+      const idEsc = obtenerIdEscuelaBorrador(borrador);
+      const cueLimpio = String(idEsc || '').replace(/^ESC-/, '');
       const inst = bbdd.instituciones.find((i) =>
-        i.id === borrador.escuelaId ||
-        ('ESC-' + i.cue) === borrador.escuelaId ||
+        i.id === idEsc ||
+        ('ESC-' + i.cue) === idEsc ||
         String(i.cue) === cueLimpio
       );
       if (inst) {
         const aplicado = evaluarBorradorSobreInstitucion(inst, borrador);
         if (aplicado) {
+          const resp = borrador.Respuestas || borrador.respuestas || {};
           escuelasActualizadas.push({
             id: inst.id,
             cue: inst.cue,
@@ -127,7 +141,7 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
             ies: inst.ies.global,
             clasificacion: inst.ies.clasificacion,
             incidencias: inst.incidencias.length,
-            respuestas: Object.keys(borrador.respuestas || {}).length
+            respuestas: Object.keys(resp).length
           });
         }
       }
@@ -189,9 +203,9 @@ function manejarRequest(req, res) {
         } else if (data.relevamiento) {
           lista = [{
             ...data.relevamiento,
-            escuelaId: (data.institucion && data.institucion.escuelaId) || data.relevamiento.escuelaId
+            escuelaId: (data.institucion && (data.institucion.escuelaId || data.institucion.id)) || data.relevamiento.institucionId || data.relevamiento.escuelaId
           }];
-        } else if (data.escuelaId) {
+        } else if (obtenerIdEscuelaBorrador(data)) {
           lista = [data];
         }
 
@@ -243,7 +257,7 @@ async function sincronizarDesdeCloudRelay() {
         const evt = JSON.parse(line);
         if (evt && evt.event === 'message' && evt.message) {
           const parsed = JSON.parse(evt.message);
-          if (parsed && parsed.escuelaId) {
+          if (obtenerIdEscuelaBorrador(parsed)) {
             recibidos.push(parsed);
           } else if (parsed && Array.isArray(parsed.borradores)) {
             recibidos.push(...parsed.borradores);

@@ -172,18 +172,24 @@ const jsContent = `/* ==========================================================
     });
   }
 
+  function obtenerIdEscuelaBorrador(b) {
+    if (!b || typeof b !== 'object') return null;
+    return b.institucionId || b.escuelaId || b.institucionCue || null;
+  }
+
   function aplicarListaBorradores(listaBorradores, reRenderizar) {
     if (!ESTADO.bbdd || !Array.isArray(listaBorradores) || listaBorradores.length === 0) return false;
     let huboCambios = false;
     let ultimaInstImpactada = null;
 
     listaBorradores.forEach(function (b) {
-      if (!b || !b.escuelaId) return;
-      const inst = buscarInstitucionPorBorrador(b.escuelaId);
+      const idEsc = obtenerIdEscuelaBorrador(b);
+      if (!idEsc) return;
+      const inst = buscarInstitucionPorBorrador(idEsc);
       if (inst) {
         const aplicado = evaluarBorradorSobreInstitucion(inst, b);
         if (aplicado) {
-          ESTADO.borradoresActivos[b.escuelaId] = b;
+          ESTADO.borradoresActivos[inst.id] = b;
           huboCambios = true;
           ultimaInstImpactada = inst;
         }
@@ -220,7 +226,7 @@ const jsContent = `/* ==========================================================
           const raw = localStorage.getItem(k);
           if (raw) {
             const b = JSON.parse(raw);
-            if (b && b.escuelaId) recolectados.push(b);
+            if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
           }
         }
       }
@@ -242,7 +248,7 @@ const jsContent = `/* ==========================================================
           };
         });
         desdeIDB.forEach(function (b) {
-          if (b && b.escuelaId) recolectados.push(b);
+          if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
         });
       }
     } catch (e) {}
@@ -254,7 +260,7 @@ const jsContent = `/* ==========================================================
         const data = await resp.json();
         if (data && data.activos) {
           Object.values(data.activos).forEach(function (b) {
-            if (b && b.escuelaId) recolectados.push(b);
+            if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
           });
         }
       }
@@ -266,14 +272,14 @@ const jsContent = `/* ==========================================================
       if (respCloud.ok) {
         const textCloud = await respCloud.text();
         if (textCloud && textCloud.trim()) {
-          textCloud.trim().split('\n').forEach(function (line) {
+          textCloud.trim().split(String.fromCharCode(10)).forEach(function (line) {
             try {
               const evt = JSON.parse(line);
               if (evt && evt.event === 'message' && evt.message) {
                 const parsed = JSON.parse(evt.message);
-                if (parsed && parsed.escuelaId) recolectados.push(parsed);
+                if (obtenerIdEscuelaBorrador(parsed)) recolectados.push(parsed);
                 else if (parsed && Array.isArray(parsed.borradores)) {
-                  parsed.borradores.forEach(function (x) { if (x && x.escuelaId) recolectados.push(x); });
+                  parsed.borradores.forEach(function (x) { if (obtenerIdEscuelaBorrador(x)) recolectados.push(x); });
                 }
               }
             } catch (errLine) {}
@@ -301,7 +307,7 @@ const jsContent = `/* ==========================================================
       if (ev.key && ev.key.indexOf('fodemep_relevamiento_v2_') === 0 && ev.newValue) {
         try {
           const b = JSON.parse(ev.newValue);
-          if (b && b.escuelaId) aplicarListaBorradores([b], true);
+          if (obtenerIdEscuelaBorrador(b)) aplicarListaBorradores([b], true);
         } catch (e) {}
       }
     });
@@ -338,7 +344,7 @@ const jsContent = `/* ==========================================================
           try {
             const parsed = JSON.parse(ev.data);
             const payload = (parsed && parsed.message) ? JSON.parse(parsed.message) : parsed;
-            if (payload && payload.escuelaId) {
+            if (obtenerIdEscuelaBorrador(payload)) {
               aplicarListaBorradores([payload], true);
             } else if (payload && Array.isArray(payload.borradores)) {
               aplicarListaBorradores(payload.borradores, true);

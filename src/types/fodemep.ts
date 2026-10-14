@@ -115,9 +115,33 @@ export interface FotoRelevamiento {
   dataUrl: string;
   nota?: string;
   timestamp: number;
+  blobKey?: string; // Clave para IndexedDB de fotos_blobs
+}
+
+export type EstadoSincronizacion =
+  | 'BORRADOR_LOCAL'
+  | 'PENDIENTE_SINCRONIZACION'
+  | 'SINCRONIZANDO'
+  | 'SINCRONIZADO'
+  | 'ERROR_SINCRONIZACION';
+
+export interface GeolocalizacionInSitu {
+  latitud: number;
+  longitud: number;
+  precisionMetros: number;
+  timestamp: number;
+}
+
+export interface EventoAuditoria {
+  id: string;
+  timestamp: number;
+  tipoAccion: 'CREAR_BORRADOR' | 'MODIFICAR_RESPUESTA' | 'AGREGAR_FOTO' | 'ELIMINAR_FOTO' | 'CERRAR_AUDITORIA';
+  preguntaId?: number;
+  detalle?: string;
 }
 
 export interface RelevamientoBorrador {
+  uuid?: string;
   escuelaId: string;
   tecnicoNombre: string;
   fecha: string;
@@ -126,4 +150,18 @@ export interface RelevamientoBorrador {
   seccionesCompletas: number[];
   fechaUltimaModificacion: number;
   finalizado: boolean;
+  estadoSincronizacion?: EstadoSincronizacion;
+  geolocalizacion?: GeolocalizacionInSitu | null;
+  hashIntegridad?: string;
+}
+
+export interface ItemColaSync {
+  id: string;
+  relevamientoUuid: string;
+  escuelaId: string;
+  timestampEncolado: number;
+  reintentos: number;
+  ultimoError?: string;
+  estado: 'PENDIENTE' | 'PROCESANDO' | 'FALLIDO';
+  payloadJSON: string;
 }

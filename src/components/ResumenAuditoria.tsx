@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Escuela, RelevamientoBorrador, ResultadoIndice } from '../types/fodemep';
 import { SECCIONES_RELEVAMIENTO } from '../data/preguntasRelevamiento';
 import { Icono } from './Icono';
+import { prepararYEncolarParaSync, generarPaqueteExportacion } from '../services/syncManager';
 
 interface ResumenAuditoriaProps {
   escuela: Escuela;
@@ -31,29 +32,24 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
   );
 
   const handleExportarDatos = () => {
+    const paquete = generarPaqueteExportacion(borrador, escuela.cue, escuela.nombre);
     const dataStr =
       'data:text/json;charset=utf-8,' +
-      encodeURIComponent(
-        JSON.stringify(
-          {
-            escuela,
-            borrador,
-            resultadoIndice,
-            fechaCierre: new Date().toISOString(),
-          },
-          null,
-          2
-        )
-      );
+      encodeURIComponent(JSON.stringify(paquete, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `Relevamiento_${escuela.cue}_${Date.now()}.json`);
+    downloadAnchor.setAttribute('download', `Expediente_FoDeMEEP_${escuela.cue}_${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
   };
 
-  const handleFinalizar = () => {
+  const handleFinalizar = async () => {
+    try {
+      await prepararYEncolarParaSync(borrador);
+    } catch (err) {
+      console.warn('Registro en cola de sincronización:', err);
+    }
     onConfirmarCierre();
     setCerradoExitoso(true);
   };

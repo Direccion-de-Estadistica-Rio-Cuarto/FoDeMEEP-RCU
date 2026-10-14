@@ -1,16 +1,41 @@
 import type { RelevamientoBorrador, FotoRelevamiento } from '../types/fodemep';
+import {
+  guardarRelevamientoIDB,
+  obtenerRelevamientoIDB,
+  listarRelevamientosIDB,
+  guardarFotoBlobIDB,
+} from './indexedDbEngine';
+
+export * from './indexedDbEngine';
+export * from './syncManager';
 
 const STORAGE_PREFIX = 'fodemep_relevamiento_';
 
+/**
+ * Guarda el borrador de manera inmediata en localStorage (para rendimiento táctil < 16ms)
+ * y en segundo plano asincrónico en IndexedDB (para almacenamiento masivo y transaccional).
+ */
 export function guardarBorradorEnStorage(borrador: RelevamientoBorrador): void {
   try {
     const key = `${STORAGE_PREFIX}${borrador.escuelaId}`;
     localStorage.setItem(key, JSON.stringify(borrador));
+
+    // Réplica asincrónica en IndexedDB (sin bloquear el hilo de la UI)
+    guardarRelevamientoIDB(borrador).catch((err) => {
+      console.warn('Aviso: guardado en IndexedDB:', err);
+    });
   } catch (error) {
     console.error('Error al guardar borrador en localStorage:', error);
+    // Si localStorage se llena por exceso de datos, IndexedDB asume el control
+    guardarRelevamientoIDB(borrador).catch((err) => {
+      console.error('Error crítico en IndexedDB fallback:', err);
+    });
   }
 }
 
+/**
+ * Carga el borrador sincrónicamente desde localStorage para carga inicial instantánea.
+ */
 export function cargarBorradorDeStorage(escuelaId: string): RelevamientoBorrador | null {
   try {
     const key = `${STORAGE_PREFIX}${escuelaId}`;
@@ -21,6 +46,26 @@ export function cargarBorradorDeStorage(escuelaId: string): RelevamientoBorrador
     console.error('Error al cargar borrador de localStorage:', error);
     return null;
   }
+}
+
+/**
+ * Carga asincrónica desde IndexedDB si localStorage fue limpiado por el navegador móvil.
+ */
+export async function cargarBorradorDeStorageAsync(escuelaId: string): Promise<RelevamientoBorrador | null> {
+  const rapido = cargarBorradorDeStorage(escuelaId);
+  if (rapido) return rapido;
+
+  try {
+    const desdeIDB = await obtenerRelevamientoIDB(escuelaId);
+    if (desdeIDB) {
+      // Rehidratar caché rápida
+      localStorage.setItem(`${STORAGE_PREFIX}${escuelaId}`, JSON.stringify(desdeIDB));
+      return desdeIDB;
+    }
+  } catch (err) {
+    console.warn('Error al leer de IndexedDB:', err);
+  }
+  return null;
 }
 
 export function listarTodosLosBorradores(): RelevamientoBorrador[] {

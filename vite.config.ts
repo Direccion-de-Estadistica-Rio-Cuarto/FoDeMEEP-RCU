@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
-  base: '/FoDeMEEP-RCU/',
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/FoDeMEEP-RCU/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -34,4 +34,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));

@@ -148,7 +148,13 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans select-none antialiased">
+    <div
+      className="min-h-screen flex flex-col font-sans select-none antialiased transition-colors duration-150"
+      style={{
+        backgroundColor: 'var(--fondo)',
+        color: 'var(--texto)',
+      }}
+    >
       {/* Cabecera Móvil Fija */}
       <HeaderMovil
         escuela={escuelaActual}
@@ -222,6 +228,7 @@ export function App() {
         style={{
           backgroundColor: 'var(--superficie)',
           borderColor: 'var(--borde)',
+          paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
         <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs" style={{ color: 'var(--texto-suave)' }}>

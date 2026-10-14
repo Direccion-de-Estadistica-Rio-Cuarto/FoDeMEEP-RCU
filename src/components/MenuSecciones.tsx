@@ -131,7 +131,10 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
             <div className="valor">{avanceGlobal}%</div>
           </div>
           <div className="detalle mt-1">
-            <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden mb-1">
+            <div
+              className="w-full rounded-full h-1.5 overflow-hidden mb-1"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--texto) 12%, transparent)' }}
+            >
               <div
                 className="h-1.5 rounded-full transition-all duration-300"
                 style={{
@@ -163,7 +166,7 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
             <div
               key={sec.id}
               onClick={() => onSeleccionarSeccion(sec.id)}
-              className="panel hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-sky-300 group"
+              className="panel hover:shadow-md transition-all cursor-pointer hover:border-sky-400 group"
               style={{
                 borderLeftWidth: '5px',
                 borderLeftColor: colorSerie,
@@ -211,7 +214,10 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
               </div>
 
               {/* Barra fina de avance por sección */}
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
+              <div
+                className="w-full rounded-full h-1.5 mt-3 overflow-hidden"
+                style={{ backgroundColor: 'color-mix(in srgb, var(--texto) 12%, transparent)' }}
+              >
                 <div
                   className="h-1.5 rounded-full transition-all duration-300"
                   style={{
@@ -233,11 +239,11 @@ export const MenuSecciones: React.FC<MenuSeccionesProps> = ({
         })}
       </div>
 
-      {/* 4. Botón Flotante Inferior de Auditoría (Limpio, sin textos repetidos) */}
+      {/* 4. Botón Flotante Inferior de Auditoría (Limpio, con soporte Safe Area iPhone) */}
       <div
         className="fixed bottom-0 left-0 right-0 p-3.5 border-t z-30 shadow-lg backdrop-blur-md"
         style={{
-          backgroundColor: 'color-mix(in srgb, var(--superficie) 92%, transparent)',
+          backgroundColor: 'color-mix(in srgb, var(--fondo) 88%, transparent)',
           borderColor: 'var(--borde)',
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))',
         }}

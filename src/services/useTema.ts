@@ -20,6 +20,18 @@ export function useTema() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-tema', tema);
+    if (tema === 'oscuro') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    // Actualizar barra de estado en iPhone Safari (iOS theme-color)
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', tema === 'oscuro' ? '#0b0f17' : '#009de0');
+    }
+
     try {
       localStorage.setItem(CLAVE_STORAGE, tema);
     } catch (e) {

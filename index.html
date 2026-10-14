@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#009de0" />
+    <meta name="theme-color" content="#009de0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0f17" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FoDeMEEP Río IV" />
@@ -20,16 +21,21 @@
     <link rel="preload" href="%BASE_URL%assets/fonts/google-sans-flex.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="%BASE_URL%assets/fonts/material-symbols-outlined.woff2" as="font" type="font/woff2" crossorigin>
 
-
-
-
-    <!-- Aplica el tema guardado antes de pintar para evitar titileo -->
+    <!-- Aplica el tema guardado antes de pintar para evitar titileo en iPhone/Safari -->
     <script>
       (function () {
         try {
           var t = localStorage.getItem('tablero-tema');
+          if (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            t = 'oscuro';
+          }
           if (t === 'claro' || t === 'oscuro') {
             document.documentElement.setAttribute('data-tema', t);
+            if (t === 'oscuro') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
           }
         } catch (e) {}
       })();

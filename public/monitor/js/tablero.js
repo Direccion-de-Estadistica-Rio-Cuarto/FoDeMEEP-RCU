@@ -11,7 +11,7 @@
   const MAPA_TIPO_CATALOGO = {"PLOMERIA":{"id":"PLOMERIA","nombre":"PLOMERIA","cuadrilla":"Plomero matriculado / griferías y flotantes"},"ELECTRICIDAD":{"id":"ELECTRICIDAD","nombre":"ELECTRICIDAD","cuadrilla":"Electricista matriculado / normalización de tableros"},"HERRERIA":{"id":"HERRERIA","nombre":"HERRERIA","cuadrilla":"Herrero / soldadura y ajuste de cerramientos"},"GAS":{"id":"GAS","nombre":"GAS","cuadrilla":"Gasista matriculado / inspección NAG-200"},"DESINFECCIÓN":{"id":"DESINFECCION","nombre":"DESINFECCIÓN","cuadrilla":"Empresa de saneamiento ambiental"},"VARIOS":{"id":"VARIOS","nombre":"VARIOS","cuadrilla":"Mantenimiento menor general"},"PINTURA":{"id":"PINTURA","nombre":"PINTURA","cuadrilla":"Cuadrilla de pintura"},"ALBAÑILERIA":{"id":"ALBANILERIA","nombre":"ALBAÑILERIA","cuadrilla":"Albañil / reparaciones de mampostería"},"REPARACION/MANTENIMIENTO DE ARTEFACTOS":{"id":"REPARACION_ARTEFACTOS","nombre":"REPARACION/MANT. DE ARTEFACTOS","cuadrilla":"Servicio técnico electromecánico / gas"},"REPARACION/MANT. DE ARTEFACTOS":{"id":"REPARACION_ARTEFACTOS","nombre":"REPARACION/MANT. DE ARTEFACTOS","cuadrilla":"Servicio técnico electromecánico / gas"},"FILTRACIONES":{"id":"FILTRACIONES","nombre":"FILTRACIONES","cuadrilla":"Techista / colocación de membrana o zinguería"},"MATAFUEGOS":{"id":"MATAFUEGOS","nombre":"MATAFUEGOS","cuadrilla":"Proveedor certificado de extintores"},"PODA/CORTE DE PASTO":{"id":"PODA_PASTO","nombre":"PODA/CORTE DE PASTO","cuadrilla":"Cuadrilla de espacios verdes / motosierristas"},"BOMBA":{"id":"BOMBA","nombre":"BOMBA","cuadrilla":"Bobinador / recambio o service de electrobombas"},"LIMPIEZA DE TANQUE/CISTERNA":{"id":"LIMPIEZA_TANQUE","nombre":"LIMPIEZA DE TANQUE/CISTERNA","cuadrilla":"Cuadrilla especializada con análisis bacteriológico"},"MOBILIARIO":{"id":"MOBILIARIO","nombre":"MOBILIARIO","cuadrilla":"Carpintería / reposición de mobiliario escolar"},"DESAGOTE":{"id":"DESAGOTE","nombre":"DESAGOTE","cuadrilla":"Camión atmosférico municipal"},"LIMPIEZA DE DESAGUES":{"id":"LIMPIEZA_DESAGUES","nombre":"LIMPIEZA DE DESAGUES","cuadrilla":"Cuadrilla de desobstrucción pluvial"},"OBRA":{"id":"OBRA_MAYOR","nombre":"OBRA","cuadrilla":"Derivación formal a Infraestructura Provincial"},"ADQUISICION DE ARTEFACTOS DE CLIMATIZACION":{"id":"ADQUISICION_CLIMA","nombre":"ADQUISICION ART. CLIMATIZACION","cuadrilla":"Compra y provisión de equipamiento nuevo"},"ADQUISICION ART. CLIMATIZACION":{"id":"ADQUISICION_CLIMA","nombre":"ADQUISICION ART. CLIMATIZACION","cuadrilla":"Compra y provisión de equipamiento nuevo"},"CAMION CISTERNA":{"id":"CAMION_CISTERNA","nombre":"CAMION CISTERNA","cuadrilla":"Suministro de emergencia de agua potable"}};
   const MAPA_DIM_AFECTADA = {"GAS":"seguridadCritica","ELECTRICIDAD":"seguridadCritica","MATAFUEGOS":"seguridadCritica","PLOMERIA":"aguaSaneamiento","BOMBA":"aguaSaneamiento","LIMPIEZA DE TANQUE/CISTERNA":"aguaSaneamiento","DESAGOTE":"aguaSaneamiento","LIMPIEZA DE DESAGUES":"aguaSaneamiento","FILTRACIONES":"estructuraCubiertas","ALBAÑILERIA":"estructuraCubiertas","HERRERIA":"estructuraCubiertas","PINTURA":"estructuraCubiertas","OBRA":"estructuraCubiertas","REPARACION/MANTENIMIENTO DE ARTEFACTOS":"climatizacion","REPARACION/MANT. DE ARTEFACTOS":"climatizacion","ADQUISICION DE ARTEFACTOS DE CLIMATIZACION":"climatizacion","ADQUISICION ART. CLIMATIZACION":"climatizacion","PODA/CORTE DE PASTO":"entornoExterior","MOBILIARIO":"estructuraCubiertas"};
   function evaluarBorradorSobreInstitucion(inst, borrador) {
-  const respuestas = borrador.respuestas || {};
+  const respuestas = borrador.respuestas || borrador.Respuestas || {};
   const keys = Object.keys(respuestas).filter((k) => {
     const v = respuestas[k];
     return v !== undefined && v !== null && v !== '';
@@ -21,8 +21,20 @@
     return false;
   }
 
-  const fecha = String(respuestas[4] || borrador.fecha || new Date().toISOString().split('T')[0]);
-  const tecnico = String(respuestas[3] || borrador.tecnicoNombre || 'Técnico Relevador FoDeMEEP');
+  const r4 = String(respuestas[4] || '');
+  const fecha = String(
+    (r4.length >= 8 ? r4 : null) ||
+    borrador.fecha ||
+    (borrador.fechaModificacion ? String(borrador.fechaModificacion).split('T')[0] : null) ||
+    new Date().toISOString().split('T')[0]
+  );
+  const r3 = String(respuestas[3] || '');
+  const tecnico = String(
+    (borrador.tecnicoNombre && borrador.tecnicoNombre !== 'Técnico Relevador FoDeMEEP' ? borrador.tecnicoNombre : null) ||
+    (r3.length > 3 ? r3 : null) ||
+    borrador.tecnicoNombre ||
+    'Técnico Relevador FoDeMEEP'
+  );
   const incidencias = [];
   const penalizadores = [];
 
@@ -431,6 +443,11 @@
       if (!idEsc) return;
       const inst = buscarInstitucionPorBorrador(idEsc);
       if (inst) {
+        const tsNuevo = Number(b.fechaUltimaModificacion || (b.fechaModificacion ? Date.parse(b.fechaModificacion) : 0) || 0);
+        const prev = ESTADO.borradoresActivos[inst.id];
+        const tsPrev = prev ? Number(prev.fechaUltimaModificacion || (prev.fechaModificacion ? Date.parse(prev.fechaModificacion) : 0) || 0) : 0;
+        if (prev && tsPrev > tsNuevo && !b.forzarActualizacion) return;
+
         const aplicado = evaluarBorradorSobreInstitucion(inst, b);
         if (aplicado) {
           ESTADO.borradoresActivos[inst.id] = b;
@@ -2447,18 +2464,18 @@
     "totalModalidadComun": 84,
     "matriculaTotalAlcanzada": 30224,
     "alumnosDiscapacidadTotal": 531,
-    "promedioIesGlobal": 66,
+    "promedioIesGlobal": 97,
     "conteoSemaforo": {
-      "Optimo": 0,
+      "Optimo": 1,
       "Bueno": 0,
-      "Regular": 1,
-      "Critico": 1,
+      "Regular": 0,
+      "Critico": 0,
       "SinRelevar": 125
     },
-    "alertasKillSwitchActivas": 1,
+    "alertasKillSwitchActivas": 0,
     "demarcacionCompetencias": {
       "fodemeepMunicipal": {
-        "IncidenciasActivas": 5,
+        "IncidenciasActivas": 3,
         "PresupuestoEstimadoARS": 0,
         "IntervencionesHistoricas": 0,
         "Alcance": "Mantenimiento preventivo y correctivo descentralizado: plomería, electricidad, tableros, gas NAG-200, calefactores, filtraciones localizadas, herrería, limpieza de tanques, desinfección, matafuegos y desmalezado."
@@ -2568,7 +2585,7 @@
       "seccionId": 4,
       "seccion": "Instalación de Gas",
       "dimension": "seguridadCritica",
-      "frecuenciaHistorica": 1,
+      "frecuenciaHistorica": 0,
       "jurisdiccion": "FoDeMEEP",
       "severidadDefault": "CRITICA",
       "cuadrilla": "Gasista Matriculado Categoría 1ª",
@@ -2724,7 +2741,7 @@
       "seccionId": 5,
       "seccion": "Red Cloacal y Efluentes",
       "dimension": "aguaSaneamiento",
-      "frecuenciaHistorica": 1,
+      "frecuenciaHistorica": 0,
       "jurisdiccion": "FoDeMEEP",
       "severidadDefault": "GRAVE",
       "cuadrilla": "Servicio de Camión Atmosférico Municipal",
@@ -2786,16 +2803,16 @@
   ],
   "serieHistoricaGlobal": [
     {
-      "mes": "no",
-      "periodo": "Relevamiento no",
-      "fecha": "no",
-      "hito": "1 establecimiento(s) relevado(s) en campo (5 hallazgos)",
-      "iesPromedio": 66,
-      "optimas": 0,
+      "mes": "2026-10-14",
+      "periodo": "Relevamiento 2026-10-14",
+      "fecha": "2026-10-14",
+      "hito": "1 establecimiento(s) relevado(s) en campo (3 hallazgos)",
+      "iesPromedio": 97,
+      "optimas": 1,
       "buenas": 0,
-      "regulares": 1,
-      "criticas": 1,
-      "escuelasCriticas": 1,
+      "regulares": 0,
+      "criticas": 0,
+      "escuelasCriticas": 0,
       "ordenesCerradas": 0,
       "intervencionesAcumuladas": 1
     }
@@ -4476,26 +4493,26 @@
       "tieneSillaRuedas": false,
       "relevamiento": {
         "id": "REL-140581800-RAYITO-20261014",
-        "fecha": "no",
-        "tecnico": "no",
+        "fecha": "2026-10-14",
+        "tecnico": "Franco Campetelli",
         "estado": "CONSOLIDADO",
         "hashIntegridad": "sello-sha256-ver",
-        "superficieM2": null,
-        "calefactoresFuncionando": 0,
+        "superficieM2": 0,
+        "calefactoresFuncionando": 6,
         "calefactoresAveriados": 0,
-        "respuestasCargadas": 62,
+        "respuestasCargadas": 42,
         "fotosCargadas": 0
       },
       "ies": {
-        "global": 66,
-        "puntajeBase": 87.9,
-        "clasificacion": "Regular",
-        "tieneKillSwitch": true,
-        "factorKillSwitch": 0.75,
-        "motivoKillSwitch": "Pérdida o fuga de gas reportada",
+        "global": 97,
+        "puntajeBase": 96.8,
+        "clasificacion": "Óptimo",
+        "tieneKillSwitch": false,
+        "factorKillSwitch": 1,
+        "motivoKillSwitch": null,
         "subindices": {
-          "seguridadCritica": 74,
-          "aguaSaneamiento": 88,
+          "seguridadCritica": 100,
+          "aguaSaneamiento": 100,
           "estructuraCubiertas": 82,
           "climatizacion": 100,
           "alimentacionCocina": 100,
@@ -4505,16 +4522,16 @@
       },
       "historialIes": [
         {
-          "periodo": "Relevamiento no",
-          "fecha": "no",
-          "indiceAnterior": 66,
-          "indiceNuevo": 66,
+          "periodo": "Relevamiento 2026-10-14",
+          "fecha": "2026-10-14",
+          "indiceAnterior": 97,
+          "indiceNuevo": 97,
           "variacion": 0,
-          "ies": 66,
+          "ies": 97,
           "ordenTrabajo": "REL-140581800-RAYITO-20261014",
           "jurisdiccion": "FoDeMEEP",
-          "motivo": "Relevamiento técnico in situ (62 respuestas · 5 hallazgos)",
-          "hito": "Relevamiento in situ (62 respuestas · 5 hallazgos)"
+          "motivo": "Relevamiento técnico in situ (42 respuestas · 3 hallazgos)",
+          "hito": "Relevamiento in situ (42 respuestas · 3 hallazgos)"
         }
       ],
       "incidencias": [
@@ -4541,7 +4558,7 @@
           "factorPenalizacion": 1,
           "motivoKillSwitch": null,
           "costoEstimado": 0,
-          "fechaDeteccion": "no"
+          "fechaDeteccion": "2026-10-14"
         },
         {
           "id": "INC-ESC-140581800-P25",
@@ -4566,7 +4583,7 @@
           "factorPenalizacion": 1,
           "motivoKillSwitch": null,
           "costoEstimado": 0,
-          "fechaDeteccion": "no"
+          "fechaDeteccion": "2026-10-14"
         },
         {
           "id": "INC-ESC-140581800-P36",
@@ -4591,57 +4608,7 @@
           "factorPenalizacion": 1,
           "motivoKillSwitch": null,
           "costoEstimado": 0,
-          "fechaDeteccion": "no"
-        },
-        {
-          "id": "INC-ESC-140581800-P46",
-          "tipoId": "GAS",
-          "tipoCodigo": "GAS",
-          "tipoNombre": "GAS",
-          "titulo": "Olor a gas o fuga reportada activa",
-          "descripcion": "Sec. 4 (Instalaciones de Gas) · Pregunta N° 46",
-          "seccion": "Sec. 4 (Instalaciones de Gas)",
-          "dimensionAfectada": "seguridadCritica",
-          "criticidad": "CRITICA",
-          "severidad": "CRITICA",
-          "jurisdiccion": "FoDeMEEP",
-          "cuadrilla": "Gasista matriculado / inspección NAG-200",
-          "estado": "ABIERTA",
-          "avance": 0,
-          "avancePorcentaje": 0,
-          "puntosRecuperables": 12,
-          "impactoPuntosIes": 12,
-          "esKillSwitch": true,
-          "factorKillSwitch": 0.75,
-          "factorPenalizacion": 0.75,
-          "motivoKillSwitch": "Pérdida o fuga de gas reportada",
-          "costoEstimado": 0,
-          "fechaDeteccion": "no"
-        },
-        {
-          "id": "INC-ESC-140581800-P59",
-          "tipoId": "DESAGOTE",
-          "tipoCodigo": "DESAGOTE",
-          "tipoNombre": "DESAGOTE",
-          "titulo": "Desbordes u olores cloacales en el edificio",
-          "descripcion": "Sec. 5 (Cloacas y Desagües) · Pregunta N° 59",
-          "seccion": "Sec. 5 (Cloacas y Desagües)",
-          "dimensionAfectada": "aguaSaneamiento",
-          "criticidad": "ALTA",
-          "severidad": "ALTA",
-          "jurisdiccion": "FoDeMEEP",
-          "cuadrilla": "Camión atmosférico municipal",
-          "estado": "ABIERTA",
-          "avance": 0,
-          "avancePorcentaje": 0,
-          "puntosRecuperables": 5,
-          "impactoPuntosIes": 5,
-          "esKillSwitch": false,
-          "factorKillSwitch": 1,
-          "factorPenalizacion": 1,
-          "motivoKillSwitch": null,
-          "costoEstimado": 0,
-          "fechaDeteccion": "no"
+          "fechaDeteccion": "2026-10-14"
         }
       ],
       "barrioAnterior": "No Aplica",
@@ -9878,14 +9845,14 @@
   ],
   "resumenGlobal": {
     "institucionesRelevadas": 1,
-    "iesPromedioCiudad": 66,
-    "escuelasOptimas": 0,
+    "iesPromedioCiudad": 97,
+    "escuelasOptimas": 1,
     "escuelasBuenas": 0,
-    "escuelasRegulares": 1,
-    "escuelasCriticas": 1,
-    "escuelasConKillSwitch": 1,
-    "totalIncidenciasActivas": 5,
-    "incidenciasFodemeep": 5,
+    "escuelasRegulares": 0,
+    "escuelasCriticas": 0,
+    "escuelasConKillSwitch": 0,
+    "totalIncidenciasActivas": 3,
+    "incidenciasFodemeep": 3,
     "incidenciasProvincia": 0
   }
 };

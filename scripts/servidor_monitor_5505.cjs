@@ -53,6 +53,11 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
     const numResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '' && resp[k] !== 'na').length;
     const numFotos = (b.fotos || []).length;
     if (numResp > 0 || numFotos > 0) {
+      const tsNuevo = Number(b.fechaUltimaModificacion || (b.fechaModificacion ? Date.parse(b.fechaModificacion) : 0) || Date.now());
+      const tsPrevio = activos[idEsc] ? Number(activos[idEsc].fechaUltimaModificacion || 0) : 0;
+      if (tsPrevio > tsNuevo && !b.forzarActualizacion) {
+        continue;
+      }
       activos[idEsc] = {
         ...b,
         institucionId: idEsc,
@@ -71,7 +76,7 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
         })),
         finalizado: Boolean(b.finalizado),
         hashIntegridad: b.hashIntegridad || 'sello-sha256-verificado',
-        fechaUltimaModificacion: b.fechaUltimaModificacion || Date.now()
+        fechaUltimaModificacion: tsNuevo
       };
       cambios++;
     } else if (activos[idEsc] && b.limpiarExplicito) {

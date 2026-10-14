@@ -187,6 +187,11 @@ const jsContent = `/* ==========================================================
       if (!idEsc) return;
       const inst = buscarInstitucionPorBorrador(idEsc);
       if (inst) {
+        const tsNuevo = Number(b.fechaUltimaModificacion || (b.fechaModificacion ? Date.parse(b.fechaModificacion) : 0) || 0);
+        const prev = ESTADO.borradoresActivos[inst.id];
+        const tsPrev = prev ? Number(prev.fechaUltimaModificacion || (prev.fechaModificacion ? Date.parse(prev.fechaModificacion) : 0) || 0) : 0;
+        if (prev && tsPrev > tsNuevo && !b.forzarActualizacion) return;
+
         const aplicado = evaluarBorradorSobreInstitucion(inst, b);
         if (aplicado) {
           ESTADO.borradoresActivos[inst.id] = b;

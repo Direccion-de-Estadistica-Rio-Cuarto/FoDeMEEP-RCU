@@ -211,7 +211,7 @@ const MAPA_DIM_AFECTADA = {
 };
 
 function evaluarBorradorSobreInstitucion(inst, borrador) {
-  const respuestas = borrador.respuestas || {};
+  const respuestas = borrador.respuestas || borrador.Respuestas || {};
   const keys = Object.keys(respuestas).filter((k) => {
     const v = respuestas[k];
     return v !== undefined && v !== null && v !== '';
@@ -221,8 +221,20 @@ function evaluarBorradorSobreInstitucion(inst, borrador) {
     return false;
   }
 
-  const fecha = String(respuestas[4] || borrador.fecha || new Date().toISOString().split('T')[0]);
-  const tecnico = String(respuestas[3] || borrador.tecnicoNombre || 'Técnico Relevador FoDeMEEP');
+  const r4 = String(respuestas[4] || '');
+  const fecha = String(
+    (r4.length >= 8 ? r4 : null) ||
+    borrador.fecha ||
+    (borrador.fechaModificacion ? String(borrador.fechaModificacion).split('T')[0] : null) ||
+    new Date().toISOString().split('T')[0]
+  );
+  const r3 = String(respuestas[3] || '');
+  const tecnico = String(
+    (borrador.tecnicoNombre && borrador.tecnicoNombre !== 'Técnico Relevador FoDeMEEP' ? borrador.tecnicoNombre : null) ||
+    (r3.length > 3 ? r3 : null) ||
+    borrador.tecnicoNombre ||
+    'Técnico Relevador FoDeMEEP'
+  );
   const incidencias = [];
   const penalizadores = [];
 

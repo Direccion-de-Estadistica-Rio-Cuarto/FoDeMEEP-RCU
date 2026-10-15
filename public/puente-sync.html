@@ -40,11 +40,39 @@
         req.onerror = () => resolve([]);
         req.onsuccess = (ev) => {
           const db = ev.target.result;
-          if (!db.objectStoreNames.contains('relevamientos')) return resolve([]);
-          const tx = db.transaction('relevamientos', 'readonly');
-          const getAll = tx.objectStore('relevamientos').getAll();
-          getAll.onsuccess = () => resolve(getAll.result || []);
-          getAll.onerror = () => resolve([]);
+          const resultados = [];
+          const stores = [];
+          if (db.objectStoreNames.contains('relevamientos')) stores.push('relevamientos');
+          if (db.objectStoreNames.contains('sync_queue')) stores.push('sync_queue');
+          if (stores.length === 0) return resolve([]);
+          const tx = db.transaction(stores, 'readonly');
+          let pendientes = stores.length;
+          const fin = () => {
+            pendientes--;
+            if (pendientes <= 0) resolve(resultados);
+          };
+          if (stores.includes('relevamientos')) {
+            const getAllRel = tx.objectStore('relevamientos').getAll();
+            getAllRel.onsuccess = () => {
+              (getAllRel.result || []).forEach((r) => resultados.push(r));
+              fin();
+            };
+            getAllRel.onerror = fin;
+          }
+          if (stores.includes('sync_queue')) {
+            const getAllSync = tx.objectStore('sync_queue').getAll();
+            getAllSync.onsuccess = () => {
+              (getAllSync.result || []).forEach((item) => {
+                if (item && item.payloadJSON) {
+                  try {
+                    resultados.push(JSON.parse(item.payloadJSON));
+                  } catch (e) {}
+                }
+              });
+              fin();
+            };
+            getAllSync.onerror = fin;
+          }
         };
       } catch (e) {
         resolve([]);
@@ -64,7 +92,18 @@
       const nResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '' && resp[k] !== 'na').length;
       const nFotos = (b.fotos || []).length;
       if (nResp > 0 || nFotos > 0) {
-        porEscuela[idEsc] = b;
+        const prev = porEscuela[idEsc];
+        if (!prev) {
+          porEscuela[idEsc] = Object.assign({}, b, { fotos: (b.fotos || []).slice() });
+        } else {
+          const mapaFotos = {};
+          (prev.fotos || []).concat(b.fotos || []).forEach((f) => {
+            if (f && f.dataUrl) mapaFotos[f.id || (f.seccionId + '-' + f.timestamp)] = f;
+          });
+          porEscuela[idEsc] = Object.assign({}, prev, b, {
+            fotos: Object.values(mapaFotos)
+          });
+        }
       }
     });
 
@@ -73,11 +112,24 @@
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({ tipo: 'FODEMEEP_SYNC_BORRADORES', borradores }, '*');
       }
+      const bodyStr = JSON.stringify({ borradores });
       fetch('http://localhost:5505/api/relevamientos-vivos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ borradores })
+        body: bodyStr
       }).catch(() => {});
+      if (bodyStr.length > 3500) {
+        fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
+          method: 'PUT',
+          headers: { Filename: 'relevamiento.json' },
+          body: bodyStr
+        }).catch(() => {});
+      } else {
+        fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
+          method: 'POST',
+          body: bodyStr
+        }).catch(() => {});
+      }
     }
   }
 

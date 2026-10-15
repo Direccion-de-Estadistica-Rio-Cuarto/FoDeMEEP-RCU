@@ -4,6 +4,7 @@ import {
   obtenerRelevamientoIDB,
   listarRelevamientosIDB,
   guardarFotoBlobIDB,
+  obtenerColaSyncIDB,
 } from './indexedDbEngine';
 
 export * from './indexedDbEngine';
@@ -34,7 +35,7 @@ export function limpiarDatosEjemploPrevios(): void {
  */
 const CLOUD_RELAY_URL = 'https://ntfy.sh/fodemep_rcu_sync_2026_prod';
 
-function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[]): void {
+function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[], enviarACloud: boolean = false): void {
   if (!borradores || borradores.length === 0) return;
   const compactos = borradores.map((b) => ({
     escuelaId: b.escuelaId,
@@ -59,51 +60,83 @@ function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[]): void 
   if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5505') {
     fetch('http://localhost:5505/api/relevamientos-vivos', { method: 'POST', headers, body: payload }).catch(() => {});
   }
-  const paraNube = compactos.filter((b) => b.finalizado || (b.fotos && b.fotos.length > 0));
-  if (paraNube.length > 0) {
-    const bodyNube = JSON.stringify({ borradores: paraNube });
-    if (bodyNube.length > 3500) {
-      fetch(CLOUD_RELAY_URL, {
-        method: 'PUT',
-        headers: { Filename: 'relevamiento.json' },
-        body: bodyNube,
-      }).catch(() => {});
-    } else {
-      fetch(CLOUD_RELAY_URL, { method: 'POST', body: bodyNube }).catch(() => {});
+  if (enviarACloud) {
+    const paraNube = compactos.filter((b) => b.finalizado || Object.keys(b.respuestas || {}).length >= 5 || (b.fotos && b.fotos.length > 0));
+    if (paraNube.length > 0) {
+      // 1. Envío liviano garantizado por POST (sin fotos pesadas, < 3KB)
+      const livianos = paraNube.map((b) => ({ ...b, fotos: [] }));
+      fetch(CLOUD_RELAY_URL, { method: 'POST', body: JSON.stringify({ borradores: livianos }) }).catch(() => {});
+
+      // 2. Si existen fotos, enviar lote completo por PUT
+      const conFotos = paraNube.filter((b) => b.fotos && b.fotos.length > 0);
+      if (conFotos.length > 0) {
+        fetch(CLOUD_RELAY_URL, {
+          method: 'PUT',
+          headers: { Filename: 'relevamiento.json' },
+          body: JSON.stringify({ borradores: conFotos }),
+        }).catch(() => {});
+      }
     }
   }
 }
 
 /**
- * Sincroniza todos los relevamientos guardados en localStorage e IndexedDB con el Monitor
+ * Sincroniza todos los relevamientos guardados en localStorage, IndexedDB (relevamientos) y cola Outbox (sync_queue) con el Monitor
  */
 export async function sincronizarTodosLosBorradoresConMonitor(): Promise<void> {
   try {
     const porEscuela: Record<string, RelevamientoBorrador> = {};
     const desdeLS = listarTodosLosBorradores();
     let desdeIDB: RelevamientoBorrador[] = [];
+    let desdeCola: RelevamientoBorrador[] = [];
     try {
       desdeIDB = await listarRelevamientosIDB();
     } catch {
       // Ignorar si IDB no está listo
     }
+    try {
+      const cola = await obtenerColaSyncIDB();
+      desdeCola = cola
+        .map((item) => {
+          try {
+            return JSON.parse(item.payloadJSON) as RelevamientoBorrador;
+          } catch {
+            return null;
+          }
+        })
+        .filter((b): b is RelevamientoBorrador => b !== null);
+    } catch {
+      // Ignorar si cola no está lista
+    }
 
-    [...desdeIDB, ...desdeLS].forEach((b) => {
+    [...desdeCola, ...desdeIDB, ...desdeLS].forEach((b) => {
       if (!b || !b.escuelaId) return;
       const resp = b.respuestas || {};
       const nResp = Object.keys(resp).filter((k) => resp[Number(k)] !== undefined && resp[Number(k)] !== null && resp[Number(k)] !== '').length;
       const nFotos = (b.fotos || []).length;
       if (nResp > 0 || nFotos > 0) {
         const prev = porEscuela[b.escuelaId];
-        if (!prev || (b.fechaUltimaModificacion || 0) >= (prev.fechaUltimaModificacion || 0)) {
-          porEscuela[b.escuelaId] = b;
+        if (!prev) {
+          porEscuela[b.escuelaId] = { ...b, fotos: [...(b.fotos || [])] };
+        } else {
+          // Conservar todas las fotos únicas de ambas fuentes
+          const mapaFotos = new Map<string, FotoRelevamiento>();
+          [...(prev.fotos || []), ...(b.fotos || [])].forEach((f) => {
+            if (f && f.dataUrl) mapaFotos.set(f.id || `${f.seccionId}-${f.timestamp}`, f);
+          });
+          const masReciente = (b.fechaUltimaModificacion || 0) >= (prev.fechaUltimaModificacion || 0) ? b : prev;
+          porEscuela[b.escuelaId] = {
+            ...masReciente,
+            finalizado: Boolean(prev.finalizado || b.finalizado),
+            fotos: Array.from(mapaFotos.values()),
+          };
         }
       }
     });
 
     const activos = Object.values(porEscuela);
     if (activos.length > 0) {
-      despacharBorradoresAlMonitor(activos);
+      despacharBorradoresAlMonitor(activos, true);
     }
   } catch (e) {
     console.warn('Error al sincronizar borradores con el Monitor:', e);
@@ -130,13 +163,13 @@ export function guardarBorradorEnStorage(borrador: RelevamientoBorrador): void {
       }
     }
 
-    // Sincronizar con el Monitor si posee respuestas o fotos cargadas
+    // Sincronizar con el Monitor local si posee respuestas o fotos cargadas (sin saturar Cloud en cada toque)
     const resp = borrador.respuestas || {};
     const tieneDatos =
       Object.keys(resp).some((k) => resp[Number(k)] !== undefined && resp[Number(k)] !== null && resp[Number(k)] !== '') ||
       (borrador.fotos && borrador.fotos.length > 0);
     if (tieneDatos) {
-      despacharBorradoresAlMonitor([borrador]);
+      despacharBorradoresAlMonitor([borrador], Boolean(borrador.finalizado));
     }
 
     // Réplica asincrónica en IndexedDB (sin bloquear el hilo de la UI)

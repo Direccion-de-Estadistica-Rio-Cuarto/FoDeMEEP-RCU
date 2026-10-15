@@ -203,18 +203,24 @@ export async function sincronizarConServidor(
 
   // 2. Envío a Relay Cloud HTTPS para impacto en tiempo real desde celulares en campo (GitHub Pages -> Monitor)
   try {
-    const bodyCloud = JSON.stringify(borradorCompacto);
-    const resCloud = bodyCloud.length > 3500
-      ? await fetch(CLOUD_RELAY_URL, {
-          method: 'PUT',
-          headers: { Filename: 'relevamiento.json' },
-          body: bodyCloud,
-        })
-      : await fetch(CLOUD_RELAY_URL, {
-          method: 'POST',
-          body: bodyCloud,
-        });
-    if (resCloud.ok) exitoCloud = true;
+    // Paso 2a: Enviar siempre primero paquete liviano (< 2KB) con respuestas por POST (inmune a límites de adjuntos)
+    const borradorLiviano = { ...borradorCompacto, fotos: [] };
+    const resPost = await fetch(CLOUD_RELAY_URL, {
+      method: 'POST',
+      body: JSON.stringify(borradorLiviano),
+    });
+    if (resPost.ok) exitoCloud = true;
+
+    // Paso 2b: Si posee evidencias fotográficas, despachar paquete completo como adjunto PUT
+    if (borradorCompacto.fotos && borradorCompacto.fotos.length > 0) {
+      const bodyCloud = JSON.stringify(borradorCompacto);
+      const resPut = await fetch(CLOUD_RELAY_URL, {
+        method: 'PUT',
+        headers: { Filename: 'relevamiento.json' },
+        body: bodyCloud,
+      });
+      if (resPut.ok) exitoCloud = true;
+    }
   } catch {
     // Sin conexión a internet
   }

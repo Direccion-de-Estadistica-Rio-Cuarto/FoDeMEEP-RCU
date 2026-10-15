@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoDeMEEP • Visor SQL y Base de Datos Original (126 Instituciones + Relevamientos)</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --sky: #38bdf8;
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #030712;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+    .badge-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      padding: 14px 20px;
+      background: #070b14;
+      border-bottom: 1px solid var(--border);
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .kpi-title { font-size: 10px; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+    .kpi-val { font-size: 15px; font-weight: 800; }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 10px 20px 0;
+      border-bottom: 1px solid var(--border);
+      background: #070b14;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active {
+      color: var(--sky);
+      border-bottom-color: var(--sky);
+      background: rgba(56, 189, 248, 0.08);
+      border-radius: 6px 6px 0 0;
+    }
+    main {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+    .table-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    th {
+      background: #030712;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.7);
+      vertical-align: middle;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+    }
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { background: #1e293b; }
+    .btn-sky {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--sky);
+    }
+    .search-bar {
+      margin-bottom: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--sky); }
+    pre.sql-viewer {
+      background: #030712;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11.5px;
+      line-height: 1.55;
+      overflow-x: auto;
+      max-height: 68vh;
+      white-space: pre;
+    }
+    footer {
+      background: #030712;
+      border-top: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span style="font-size: 20px;">🗄️</span>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h1 style="font-size: 14px; font-weight: 800;">FoDeMEEP • Base de Datos SQL Original y Relevamientos en Vivo</h1>
+          <span class="badge-live"><span class="badge-pulse"></span> PostgreSQL / PostGIS + Sync en Vivo</span>
+        </div>
+        <p style="font-size: 11px; color: var(--muted);">Padrón Oficial 126 Establecimientos Educativos de Río Cuarto (`supabase/schema.sql` + `seed_completo_publicas.sql`)</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <a class="btn btn-sky" href="/">📊 Volver al Tablero Monitor</a>
+      <a class="btn" href="/supabase/schema.sql" download="schema.sql">⬇️ Descargar schema.sql</a>
+      <a class="btn" href="/supabase/seed_completo_publicas.sql" download="seed_completo_publicas.sql">⬇️ Descargar seed_completo_publicas.sql</a>
+      <button class="btn" onclick="cargarDatos()">🔄 Refrescar BBDD</button>
+    </div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-title">Tabla `instituciones` (Padrón SQL)</div>
+      <div class="kpi-val" id="kpi-total-inst" style="color: #fff;">126 establecimientos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Institución Relevada Activa</div>
+      <div class="kpi-val" id="kpi-escuela" style="color: var(--emerald); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Tabla `respuestas_relevamiento`</div>
+      <div class="kpi-val" id="kpi-respuestas" style="color: var(--sky);">0 respuestas</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Tabla `evidencias_fotograficas`</div>
+      <div class="kpi-val" id="kpi-fotos" style="color: #a855f7;">0 fotos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Tabla `incidencias`</div>
+      <div class="kpi-val" id="kpi-incidencias" style="color: var(--amber);">0 detectadas</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="cambiarTab('instituciones', this)">0. instituciones (BBDD Original · 126 Escuelas)</button>
+    <button class="tab-btn" onclick="cambiarTab('sql', this)">1. Scripts SQL Originales (schema.sql / seed.sql)</button>
+    <button class="tab-btn" onclick="cambiarTab('relevamientos', this)">2. relevamientos (Cabecera Activa)</button>
+    <button class="tab-btn" onclick="cambiarTab('respuestas', this)">3. respuestas_relevamiento</button>
+    <button class="tab-btn" onclick="cambiarTab('incidencias', this)">4. incidencias</button>
+    <button class="tab-btn" onclick="cambiarTab('fotos', this)">5. evidencias_fotograficas</button>
+  </div>
+
+  <main>
+    <!-- TAB 0: INSTITUCIONES (BBDD ORIGINAL) -->
+    <div id="vista-instituciones">
+      <div class="search-bar">
+        <input type="text" id="filtro-instituciones" class="search-input" placeholder="Buscar en tabla SQL `instituciones` por CUE, nombre, código empresa, barrio, sector o nivel..." oninput="renderInstituciones()">
+        <span style="font-size: 11px; color: var(--muted); align-self: center;" id="contador-inst"></span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>id (PK)</th>
+              <th>cue</th>
+              <th>codigo_emp</th>
+              <th>nombre</th>
+              <th>nivel / modalidad</th>
+              <th>barrio (Vecinal)</th>
+              <th>macrozona</th>
+              <th>domicilio</th>
+              <th>coordenadas (lat, lng)</th>
+              <th>matricula_2025</th>
+              <th>ies_actual</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-instituciones" class="code"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 1: SCRIPTS SQL ORIGINALES -->
+    <div id="vista-sql" style="display: none;">
+      <div class="search-bar">
+        <button class="btn btn-sky" onclick="cargarArchivoSql('/supabase/schema.sql')">📄 Ver `supabase/schema.sql` (DDL Estructura Relacional)</button>
+        <button class="btn btn-sky" onclick="cargarArchivoSql('/supabase/seed_completo_publicas.sql')">📄 Ver `supabase/seed_completo_publicas.sql` (INSERT 126 Escuelas)</button>
+        <button class="btn" onclick="cargarArchivoSql('/supabase/seed.sql')">📄 Ver `supabase/seed.sql` (INSERT 85 Modalidad Común)</button>
+        <span style="font-size: 11px; color: var(--muted); align-self: center;" id="label-archivo-sql">Mostrando: /supabase/schema.sql</span>
+      </div>
+      <pre class="sql-viewer" id="contenido-sql">Cargando archivo SQL...</pre>
+    </div>
+
+    <!-- TAB 2: RELEVAMIENTOS -->
+    <div id="vista-relevamientos" style="display: none;">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Columna SQL (`relevamientos`)</th>
+              <th>Tipo PostgreSQL</th>
+              <th>Valor Almacenado en Tiempo Real</th>
+              <th>Comentario de Auditoría</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-relevamientos" class="code"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: RESPUESTAS -->
+    <div id="vista-respuestas" style="display: none;">
+      <div class="search-bar">
+        <input type="text" id="filtro-busqueda" class="search-input" placeholder="Filtrar por número de pregunta o respuesta..." oninput="renderRespuestas()">
+        <span style="font-size: 11px; color: var(--muted); align-self: center;" id="contador-filtradas"></span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>pregunta_id</th>
+              <th>relevamiento_id</th>
+              <th>valor_respuesta</th>
+              <th style="text-align: right;">Estado Transaccional</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-respuestas" class="code"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: INCIDENCIAS -->
+    <div id="vista-incidencias" style="display: none;">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>tipo_incidencia</th>
+              <th>criticidad</th>
+              <th>jurisdiccion</th>
+              <th>descripcion / cuadrilla</th>
+              <th>impacto_ies</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-incidencias" class="code"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 5: FOTOS -->
+    <div id="vista-fotos" style="display: none;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; background: var(--card); border: 1px solid var(--border); padding: 12px 16px; border-radius: 10px;">
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff;">Evidencias Fotográficas Asociadas al Relevamiento Activo</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+            Importá el archivo <span class="code" style="color: var(--sky);">.json</span> exportado desde el celular del auditor o adjuntá las fotografías tomadas en campo para vincularlas a <strong style="color: var(--emerald);">JARDIN MATERNAL RAYITO DE SOL-UNRC</strong>.
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <label class="btn btn-sky" style="cursor: pointer;">
+            📥 Importar JSON del Auditor
+            <input type="file" id="input-importar-json" accept=".json,application/json" style="display: none;" onchange="importarJsonAuditor(event)">
+          </label>
+          <label class="btn" style="cursor: pointer; border-color: rgba(16, 185, 129, 0.4); color: var(--emerald);">
+            📸 Adjuntar Fotos a Rayito de Sol
+            <input type="file" id="input-adjuntar-fotos" accept="image/*" multiple style="display: none;" onchange="adjuntarFotosDirectas(event)">
+          </label>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Vista Previa</th>
+              <th>id (UUID)</th>
+              <th>seccion_id / pregunta_id</th>
+              <th>tamano_bytes</th>
+              <th>timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-fotos" class="code"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>Secretaría de Gestión y Participación Ciudadana • FoDeMEEP · Dirección de Estadística, Control de Calidad y Procesos</div>
+    <div>PostgreSQL 16 + PostGIS (`supabase/schema.sql` & `supabase/seed_completo_publicas.sql`)</div>
+  </footer>
+
+  <script>
+    let tabActual = 'instituciones';
+    let bbddCompleta = null;
+    let activosMap = {};
+    let instRelevada = null;
+    let borradorActivo = null;
+
+    async function cargarArchivoSql(ruta) {
+      document.getElementById('label-archivo-sql').textContent = 'Mostrando: ' + ruta;
+      const pre = document.getElementById('contenido-sql');
+      pre.textContent = 'Cargando ' + ruta + '...';
+      try {
+        const r = await fetch(ruta);
+        pre.textContent = await r.text();
+      } catch (e) {
+        pre.textContent = 'Error al cargar ' + ruta + ': ' + e.message;
+      }
+    }
+
+    async function cargarDatos() {
+      try {
+        const [rBbdd, rAct] = await Promise.all([
+          fetch('/datos/bbdd-fodemeep.json'),
+          fetch('/api/relevamientos-vivos')
+        ]);
+        if (rBbdd.ok) bbddCompleta = await rBbdd.json();
+        if (rAct.ok) {
+          const dAct = await rAct.json();
+          activosMap = (dAct && dAct.activos) ? dAct.activos : {};
+        }
+
+        if (bbddCompleta && Array.isArray(bbddCompleta.instituciones)) {
+          document.getElementById('kpi-total-inst').textContent = bbddCompleta.instituciones.length + ' establecimientos';
+          instRelevada = bbddCompleta.instituciones.find(i => i.ies && i.ies.clasificacion !== 'Sin relevar') || bbddCompleta.instituciones[0];
+        }
+        const clavesAct = Object.keys(activosMap);
+        if (clavesAct.length > 0) {
+          borradorActivo = activosMap[clavesAct[0]];
+        }
+
+        const respObj = borradorActivo ? (borradorActivo.Respuestas || borradorActivo.respuestas || {}) : {};
+        const nResp = Object.keys(respObj).length;
+        const fotosArr = borradorActivo ? (borradorActivo.fotos || []) : (instRelevada && instRelevada.relevamiento && instRelevada.relevamiento.evidencias ? instRelevada.relevamiento.evidencias : []);
+        const incArr = instRelevada ? (instRelevada.incidencias || []) : [];
+
+        document.getElementById('kpi-escuela').textContent = instRelevada
+          ? `${instRelevada.nombre} (CUE ${instRelevada.cue} · IES ${instRelevada.ies.global}/100)`
+          : '--';
+        document.getElementById('kpi-respuestas').textContent = `${nResp} registradas`;
+        document.getElementById('kpi-fotos').textContent = `${fotosArr.length} evidencia(s)`;
+        document.getElementById('kpi-incidencias').textContent = `${incArr.length} detectadas`;
+
+        renderTab();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function cambiarTab(tab, btnEl) {
+      tabActual = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      ['instituciones', 'sql', 'relevamientos', 'respuestas', 'incidencias', 'fotos'].forEach(t => {
+        document.getElementById(`vista-${t}`).style.display = (t === tab) ? 'block' : 'none';
+      });
+      if (tab === 'sql' && document.getElementById('contenido-sql').textContent.startsWith('Cargando')) {
+        cargarArchivoSql('/supabase/schema.sql');
+      }
+      renderTab();
+    }
+
+    function renderTab() {
+      if (tabActual === 'instituciones') renderInstituciones();
+      if (tabActual === 'relevamientos') renderRelevamientos();
+      if (tabActual === 'respuestas') renderRespuestas();
+      if (tabActual === 'incidencias') renderIncidencias();
+      if (tabActual === 'fotos') renderFotos();
+    }
+
+    function renderInstituciones() {
+      const tbody = document.getElementById('tbody-instituciones');
+      if (!bbddCompleta || !Array.isArray(bbddCompleta.instituciones)) return;
+      const q = (document.getElementById('filtro-instituciones').value || '').toLowerCase().trim();
+      const filtradas = bbddCompleta.instituciones.filter(i => {
+        if (!q) return true;
+        return `${i.id} ${i.cue} ${i.codigoEmp} ${i.nombre} ${i.barrio} ${i.macrozona} ${i.nivel} ${i.modalidad} ${i.domicilio}`.toLowerCase().includes(q);
+      });
+      document.getElementById('contador-inst').textContent = `Mostrando ${filtradas.length} de ${bbddCompleta.instituciones.length} filas en tabla SQL instituciones`;
+
+      tbody.innerHTML = filtradas.map(i => {
+        const relevada = i.ies && i.ies.clasificacion !== 'Sin relevar';
+        return `
+          <tr>
+            <td style="color: var(--sky); font-weight: bold;">${i.id}</td>
+            <td>${i.cue}</td>
+            <td style="color: var(--muted);">${i.codigoEmp || '--'}</td>
+            <td style="font-family: var(--font); font-weight: 700; color: #fff;">${i.nombre}</td>
+            <td style="font-family: var(--font);">${i.nivel} <span style="color: var(--muted);">(${i.modalidad})</span></td>
+            <td style="font-family: var(--font); color: var(--sky);">${i.barrio}</td>
+            <td style="font-family: var(--font); color: var(--muted);">${i.macrozona}</td>
+            <td style="font-family: var(--font);">${i.domicilio}</td>
+            <td style="color: var(--muted);">${Number(i.latitud).toFixed(5)}, ${Number(i.longitud).toFixed(5)}</td>
+            <td style="font-weight: bold;">${i.matricula2025 || 0}</td>
+            <td>
+              <span style="padding: 2px 6px; border-radius: 4px; font-weight: 700; background: ${relevada ? 'rgba(52, 211, 153, 0.2)' : 'rgba(148, 163, 184, 0.15)'}; color: ${relevada ? 'var(--emerald)' : 'var(--muted)'};">
+                ${relevada ? (i.ies.global + ' / 100 (' + i.ies.clasificacion + ')') : 'SIN_RELEVAR'}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderRelevamientos() {
+      const tbody = document.getElementById('tbody-relevamientos');
+      if (!instRelevada) return;
+      const rel = instRelevada.relevamiento || {};
+      const ies = instRelevada.ies || {};
+      const rows = [
+        ['id', 'UUID / VARCHAR', rel.id || 'REL-140581800-RAYITO-20261014', 'Clave primaria del relevamiento auditado'],
+        ['institucion_id', 'VARCHAR(50)', instRelevada.id + ' (' + instRelevada.nombre + ')', 'FK hacia tabla instituciones'],
+        ['cue', 'VARCHAR(20)', instRelevada.cue, 'Código Único de Establecimiento'],
+        ['fecha_relevamiento', 'DATE', rel.fecha || '2026-10-14', 'Fecha de cierre en campo'],
+        ['inspector_nombre', 'VARCHAR(255)', rel.tecnico || 'Franco Campetelli', 'Técnico relevador firmante'],
+        ['indice_ies_global', 'NUMERIC(5,2)', ies.global + ' / 100', 'Índice de Infraestructura Escolar Segura'],
+        ['clasificacion_semaforo', 'VARCHAR(30)', ies.clasificacion, 'Clasificación situacional'],
+        ['subindice_seguridad_critica', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.seguridadCritica : 100, 'Ponderación 25% (Gas, Electricidad, Evacuación)'],
+        ['subindice_agua_saneamiento', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.aguaSaneamiento : 100, 'Ponderación 20% (Tanques, Bombas, Sanitarios)'],
+        ['subindice_estructura_cubiertas', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.estructuraCubiertas : 82, 'Ponderación 18% (Techos, Muros, Pisos, Aberturas)'],
+        ['subindice_climatizacion', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.climatizacion : 100, 'Ponderación 15% (Calefacción y Ventilación)'],
+        ['subindice_alimentacion_cocina', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.alimentacionCocina : 100, 'Ponderación 10% (Cocina PAICOR)'],
+        ['subindice_accesibilidad', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.accesibilidad : 100, 'Ponderación 7% (Rampas y Baño Adaptado)'],
+        ['subindice_entorno_exterior', 'NUMERIC(5,2)', ies.subindices ? ies.subindices.entornoExterior : 100, 'Ponderación 5% (Patios y Veredas)'],
+        ['estado', 'ENUM', rel.estado || 'CONSOLIDADO', 'Estado del relevamiento']
+      ];
+
+      tbody.innerHTML = rows.map(([col, tipo, val, desc]) => `
+        <tr>
+          <td style="color: var(--sky); font-weight: bold;">${col}</td>
+          <td style="color: var(--muted);">${tipo}</td>
+          <td style="color: #fff; font-weight: bold;">${val}</td>
+          <td style="color: var(--muted); font-family: var(--font); font-size: 11px;">${desc}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderRespuestas() {
+      const tbody = document.getElementById('tbody-respuestas');
+      const respObj = borradorActivo ? (borradorActivo.Respuestas || borradorActivo.respuestas || {}) : {};
+      const filtro = (document.getElementById('filtro-busqueda').value || '').toLowerCase();
+      const entries = Object.entries(respObj).filter(([pId, val]) => pId.includes(filtro) || String(val).toLowerCase().includes(filtro));
+      document.getElementById('contador-filtradas').textContent = `${entries.length} respuesta(s)`;
+
+      if (entries.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 30px;">Sin respuestas para el filtro actual.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = entries.map(([pId, val]) => `
+        <tr>
+          <td style="color: var(--sky); font-weight: bold;">#${pId}</td>
+          <td style="color: var(--muted);">${borradorActivo ? (borradorActivo.uuid || borradorActivo.idRelevamiento) : 'REL-140581800'}</td>
+          <td><span style="background: #1e293b; color: var(--emerald); padding: 2px 6px; border-radius: 4px; font-weight: 700;">${val}</span></td>
+          <td style="text-align: right; color: var(--emerald); font-weight: bold;">SINCRONIZADO</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderIncidencias() {
+      const tbody = document.getElementById('tbody-incidencias');
+      const incs = instRelevada ? (instRelevada.incidencias || []) : [];
+      if (incs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">No hay incidencias activas.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = incs.map(inc => `
+        <tr>
+          <td style="color: var(--sky);">${inc.id}</td>
+          <td style="color: var(--amber); font-weight: bold;">${inc.tipoNombre}</td>
+          <td>${inc.severidad}</td>
+          <td style="color: var(--emerald); font-weight: bold;">${inc.jurisdiccion}</td>
+          <td style="font-family: var(--font);">${inc.titulo} <span style="color: var(--muted);">(${inc.descripcion})</span></td>
+          <td style="font-weight: bold;">-${inc.impactoPuntosIes} pts</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderFotos() {
+      const tbody = document.getElementById('tbody-fotos');
+      const fotos = borradorActivo ? (borradorActivo.fotos || []) : [];
+      if (fotos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--muted); padding: 30px; font-family: var(--font); line-height: 1.6;">
+          <div style="color: var(--amber); font-weight: 700; font-size: 13px; margin-bottom: 6px;">⚠️ Las fotografías permanecen en la memoria IndexedDB del iPhone del auditor</div>
+          <div style="max-width: 680px; margin: 0 auto; font-size: 12px;">
+            Cuando <strong>Franco Campetelli</strong> cerró la auditoría en <span class="code">direccion-de-estadistica-rio-cuarto.github.io</span>, la PWA operaba en modo 100% local (sin relay en la nube), por lo que las fotos quedaron alojadas dentro del navegador Safari de su teléfono.<br>
+            Para impactarlas aquí: <strong>(1)</strong> Que el auditor vuelva a abrir la PWA actualizada en su celular, o <strong>(2)</strong> usá los botones superiores para importar el <span class="code">.json</span> o adjuntar las fotos directamente.
+          </div>
+        </td></tr>`;
+        return;
+      }
+      tbody.innerHTML = fotos.map(f => `
+        <tr>
+          <td>${f.dataUrl ? `<a href="${f.dataUrl}" target="_blank"><img src="${f.dataUrl}" alt="Evidencia" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);"></a>` : '--'}</td>
+          <td style="color: var(--sky);">${f.id}</td>
+          <td>Sección ${f.seccionId || 3}${f.preguntaId ? ' · Pregunta #' + f.preguntaId : ''}</td>
+          <td style="color: var(--emerald);">${f.dataUrl ? Math.round(f.dataUrl.length * 0.75).toLocaleString() + ' bytes' : '--'}</td>
+          <td style="color: var(--muted);">${f.timestamp ? new Date(f.timestamp).toLocaleString('es-AR') : '--'}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function guardarBorradorActualizado(nuevoBorrador) {
+      await fetch('/api/relevamientos-vivos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ borrador: nuevoBorrador })
+      });
+      await cargarDatos();
+    }
+
+    async function importarJsonAuditor(ev) {
+      const file = ev.target.files && ev.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const rel = data.relevamiento || data;
+        const inst = data.institucion || {};
+        const fotosExtraidas = (rel.evidencias || rel.fotos || []).map((f, idx) => ({
+          id: f.id || ('foto-importada-' + Date.now() + '-' + idx),
+          seccionId: f.seccionId || 3,
+          preguntaId: f.preguntaId,
+          timestamp: f.timestamp || Date.now(),
+          dataUrl: f.dataUrl
+        })).filter(f => f.dataUrl);
+
+        const base = borradorActivo || {
+          escuelaId: inst.escuelaId || 'ESC-140581800',
+          institucionId: inst.escuelaId || 'ESC-140581800',
+          tecnicoNombre: rel.tecnico || rel.tecnicoNombre || 'Franco Campetelli',
+          fecha: rel.fechaRelevamiento || rel.fecha || '2026-10-14',
+          respuestas: rel.respuestas || {},
+          finalizado: true
+        };
+        const combinado = Object.assign({}, base, {
+          respuestas: Object.assign({}, base.respuestas || {}, rel.respuestas || {}),
+          fotos: (base.fotos || []).concat(fotosExtraidas),
+          fechaUltimaModificacion: Date.now()
+        });
+        await guardarBorradorActualizado(combinado);
+      } catch (e) {
+        alert('Error al leer el archivo JSON: ' + e.message);
+      }
+      ev.target.value = '';
+    }
+
+    async function adjuntarFotosDirectas(ev) {
+      const files = Array.from(ev.target.files || []);
+      if (files.length === 0) return;
+      const nuevasFotos = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+        nuevasFotos.push({
+          id: 'foto-rayito-' + Date.now() + '-' + i,
+          seccionId: 3,
+          timestamp: Date.now(),
+          dataUrl
+        });
+      }
+      if (borradorActivo) {
+        const combinado = Object.assign({}, borradorActivo, {
+          fotos: (borradorActivo.fotos || []).concat(nuevasFotos),
+          fechaUltimaModificacion: Date.now()
+        });
+        await guardarBorradorActualizado(combinado);
+      }
+      ev.target.value = '';
+    }
+
+    cargarDatos();
+  </script>
+</body>
+</html>

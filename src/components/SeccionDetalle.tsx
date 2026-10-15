@@ -38,7 +38,7 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
     setComprimiendoFoto(true);
     try {
       const file = files[0];
-      const dataUrl = await comprimirImagen(file, 1024, 0.75);
+      const dataUrl = await comprimirImagen(file, 720, 0.55);
 
       const nuevaFoto: FotoRelevamiento = {
         id: `foto-${Date.now()}`,
@@ -318,7 +318,7 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
               Evidencias Fotográficas de la Sección
             </h3>
             <p className="text-xs" style={{ color: 'var(--texto-suave)' }}>
-              Compresión automática WebP/JPEG &lt; 250 KB
+              Compresión inteligente ultra-liviana &lt; 40 KB
             </p>
           </div>
 

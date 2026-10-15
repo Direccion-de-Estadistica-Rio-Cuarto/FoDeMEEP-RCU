@@ -152,6 +152,47 @@ export function generarPaqueteExportacion(
  */
 const CLOUD_RELAY_URL = 'https://ntfy.sh/fodemep_rcu_sync_2026_prod';
 
+async function comprimirDataUrlSync(dataUrl: string, maxDimension: number = 640, calidad: number = 0.52): Promise<string> {
+  if (!dataUrl || typeof document === 'undefined' || dataUrl.length <= 50000) {
+    return dataUrl;
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, width, height);
+        let comprimida = canvas.toDataURL('image/jpeg', calidad);
+        if (comprimida.length > 55000) {
+          comprimida = canvas.toDataURL('image/jpeg', 0.42);
+        }
+        resolve(comprimida.length < dataUrl.length ? comprimida : dataUrl);
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 export async function sincronizarConServidor(
   borrador: RelevamientoBorrador,
   cue: string = '000000000',
@@ -165,6 +206,15 @@ export async function sincronizarConServidor(
   error?: string;
 }> {
   const paquete = generarPaqueteExportacion(borrador, cue, nombreEscuela);
+  const fotosComprimidas = await Promise.all(
+    (borrador.fotos || []).map(async (f) => ({
+      id: f.id,
+      seccionId: f.seccionId,
+      preguntaId: f.preguntaId,
+      timestamp: f.timestamp,
+      dataUrl: await comprimirDataUrlSync(f.dataUrl),
+    }))
+  );
   const borradorCompacto = {
     escuelaId: borrador.escuelaId,
     cue,
@@ -173,13 +223,7 @@ export async function sincronizarConServidor(
     tecnicoNombre: borrador.tecnicoNombre || (borrador.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
     fecha: borrador.fecha || new Date().toISOString().split('T')[0],
     respuestas: borrador.respuestas,
-    fotos: (borrador.fotos || []).map((f) => ({
-      id: f.id,
-      seccionId: f.seccionId,
-      preguntaId: f.preguntaId,
-      timestamp: f.timestamp,
-      dataUrl: f.dataUrl,
-    })),
+    fotos: fotosComprimidas,
     finalizado: true,
     hashIntegridad: borrador.hashIntegridad,
     fechaUltimaModificacion: Date.now(),
@@ -211,7 +255,7 @@ export async function sincronizarConServidor(
     });
     if (resPost.ok) exitoCloud = true;
 
-    // Paso 2b: Si posee evidencias fotográficas, despachar paquete completo como adjunto PUT
+    // Paso 2b: Si posee evidencias fotográficas, despachar paquete con fotos ultra-comprimidas (~25-35KB c/u)
     if (borradorCompacto.fotos && borradorCompacto.fotos.length > 0) {
       const bodyCloud = JSON.stringify(borradorCompacto);
       const resPut = await fetch(CLOUD_RELAY_URL, {

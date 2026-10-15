@@ -35,25 +35,84 @@ export function limpiarDatosEjemploPrevios(): void {
  */
 const CLOUD_RELAY_URL = 'https://ntfy.sh/fodemep_rcu_sync_2026_prod';
 
-function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[], enviarACloud: boolean = false): void {
+/**
+ * Re-comprime en memoria cualquier dataUrl pesada (> 40 KB) antes de subirla por red
+ * para que cada evidencia fotográfica pese ~20-35 KB y no genere interferencias ni bloquee la BBDD.
+ */
+export async function optimizarDataUrlParaSync(
+  dataUrl: string,
+  maxDimension: number = 640,
+  calidad: number = 0.52
+): Promise<string> {
+  if (!dataUrl || typeof document === 'undefined' || dataUrl.length <= 50000) {
+    return dataUrl;
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, width, height);
+        let comprimida = canvas.toDataURL('image/jpeg', calidad);
+        if (comprimida.length > 55000) {
+          comprimida = canvas.toDataURL('image/jpeg', 0.42);
+        }
+        resolve(comprimida.length < dataUrl.length ? comprimida : dataUrl);
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+async function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[], enviarACloud: boolean = false): Promise<void> {
   if (!borradores || borradores.length === 0) return;
-  const compactos = borradores.map((b) => ({
-    escuelaId: b.escuelaId,
-    uuid: b.uuid,
-    tecnicoNombre: b.tecnicoNombre || (b.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
-    fecha: b.fecha,
-    respuestas: b.respuestas,
-    fotos: (b.fotos || []).map((f) => ({
-      id: f.id,
-      seccionId: f.seccionId,
-      preguntaId: f.preguntaId,
-      timestamp: f.timestamp,
-      dataUrl: f.dataUrl,
-    })),
-    finalizado: b.finalizado,
-    hashIntegridad: b.hashIntegridad,
-    fechaUltimaModificacion: b.fechaUltimaModificacion || Date.now(),
-  }));
+
+  // Optimizar fotos en memoria antes de transmitir o persistir en Monitor
+  const compactos = await Promise.all(
+    borradores.map(async (b) => {
+      const fotosOptimizadas = await Promise.all(
+        (b.fotos || []).map(async (f) => ({
+          id: f.id,
+          seccionId: f.seccionId,
+          preguntaId: f.preguntaId,
+          timestamp: f.timestamp,
+          dataUrl: await optimizarDataUrlParaSync(f.dataUrl),
+        }))
+      );
+      return {
+        escuelaId: b.escuelaId,
+        uuid: b.uuid,
+        tecnicoNombre: b.tecnicoNombre || (b.respuestas[3] as string) || 'Técnico Relevador FoDeMEEP',
+        fecha: b.fecha,
+        respuestas: b.respuestas,
+        fotos: fotosOptimizadas,
+        finalizado: b.finalizado,
+        hashIntegridad: b.hashIntegridad,
+        fechaUltimaModificacion: b.fechaUltimaModificacion || Date.now(),
+      };
+    })
+  );
+
   const payload = JSON.stringify({ borradores: compactos });
   const headers = { 'Content-Type': 'application/json' };
   fetch('/api/relevamientos-vivos', { method: 'POST', headers, body: payload }).catch(() => {});
@@ -63,17 +122,17 @@ function despacharBorradoresAlMonitor(borradores: RelevamientoBorrador[], enviar
   if (enviarACloud) {
     const paraNube = compactos.filter((b) => b.finalizado || Object.keys(b.respuestas || {}).length >= 5 || (b.fotos && b.fotos.length > 0));
     if (paraNube.length > 0) {
-      // 1. Envío liviano garantizado por POST (sin fotos pesadas, < 3KB)
+      // 1. Envío liviano garantizado por POST (sin fotos pesadas, < 2KB)
       const livianos = paraNube.map((b) => ({ ...b, fotos: [] }));
       fetch(CLOUD_RELAY_URL, { method: 'POST', body: JSON.stringify({ borradores: livianos }) }).catch(() => {});
 
-      // 2. Si existen fotos, enviar lote completo por PUT
+      // 2. Si existen fotos, enviar cada institución por separado con fotos ultra-comprimidas (~25-35KB c/u)
       const conFotos = paraNube.filter((b) => b.fotos && b.fotos.length > 0);
-      if (conFotos.length > 0) {
+      for (const item of conFotos) {
         fetch(CLOUD_RELAY_URL, {
           method: 'PUT',
           headers: { Filename: 'relevamiento.json' },
-          body: JSON.stringify({ borradores: conFotos }),
+          body: JSON.stringify({ borrador: item }),
         }).catch(() => {});
       }
     }
@@ -136,7 +195,7 @@ export async function sincronizarTodosLosBorradoresConMonitor(): Promise<void> {
 
     const activos = Object.values(porEscuela);
     if (activos.length > 0) {
-      despacharBorradoresAlMonitor(activos, true);
+      await despacharBorradoresAlMonitor(activos, true);
     }
   } catch (e) {
     console.warn('Error al sincronizar borradores con el Monitor:', e);
@@ -239,13 +298,13 @@ export function listarTodosLosBorradores(): RelevamientoBorrador[] {
 }
 
 /**
- * Comprime imágenes del celular en el navegador usando Canvas y WebP/JPEG.
- * Reduce fotos pesadas de 8MB de cámara a < 250KB aptas para offline y sincronización ágil.
+ * Comprime imágenes del celular en el navegador usando Canvas (720px @ 0.55 JPEG).
+ * Reduce fotos pesadas de 8MB de cámara a ~25-40KB aptas para offline, BBDD liviana y sincronización instantánea.
  */
 export async function comprimirImagen(
   file: File,
-  maxDimension: number = 1024,
-  calidad: number = 0.75
+  maxDimension: number = 720,
+  calidad: number = 0.55
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -279,8 +338,11 @@ export async function comprimirImagen(
 
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Convertir a JPEG comprimido
-        const dataUrl = canvas.toDataURL('image/jpeg', calidad);
+        // Convertir a JPEG ultra-liviano (~25-40 KB)
+        let dataUrl = canvas.toDataURL('image/jpeg', calidad);
+        if (dataUrl.length > 55000) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.42);
+        }
         resolve(dataUrl);
       };
       img.onerror = reject;

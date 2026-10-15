@@ -80,6 +80,30 @@
     });
   }
 
+  function comprimirDataUrl(dataUrl) {
+    if (!dataUrl || dataUrl.length <= 50000) return Promise.resolve(dataUrl);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let w = img.width, h = img.height, maxD = 640;
+          if (w > h) { if (w > maxD) { h = Math.round(h * maxD / w); w = maxD; } }
+          else { if (h > maxD) { w = Math.round(w * maxD / h); h = maxD; } }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const ctx = c.getContext('2d');
+          if (!ctx) return resolve(dataUrl);
+          ctx.drawImage(img, 0, 0, w, h);
+          let out = c.toDataURL('image/jpeg', 0.52);
+          if (out.length > 55000) out = c.toDataURL('image/jpeg', 0.42);
+          resolve(out.length < dataUrl.length ? out : dataUrl);
+        } catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
   async function recolectarYEnviar() {
     const porEscuela = {};
     const desdeLS = leerLocalStorage();
@@ -107,8 +131,14 @@
       }
     });
 
-    const borradores = Object.values(porEscuela);
-    if (borradores.length > 0) {
+    const borradoresCrudos = Object.values(porEscuela);
+    if (borradoresCrudos.length > 0) {
+      const borradores = await Promise.all(borradoresCrudos.map(async (b) => {
+        const fotosOpt = await Promise.all((b.fotos || []).map(async (f) => Object.assign({}, f, {
+          dataUrl: await comprimirDataUrl(f.dataUrl)
+        })));
+        return Object.assign({}, b, { fotos: fotosOpt });
+      }));
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({ tipo: 'FODEMEEP_SYNC_BORRADORES', borradores }, '*');
       }
@@ -118,17 +148,21 @@
         headers: { 'Content-Type': 'application/json' },
         body: bodyStr
       }).catch(() => {});
-      if (bodyStr.length > 3500) {
-        fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
-          method: 'PUT',
-          headers: { Filename: 'relevamiento.json' },
-          body: bodyStr
-        }).catch(() => {});
-      } else {
-        fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
-          method: 'POST',
-          body: bodyStr
-        }).catch(() => {});
+
+      const livianos = borradores.map((b) => Object.assign({}, b, { fotos: [] }));
+      fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
+        method: 'POST',
+        body: JSON.stringify({ borradores: livianos })
+      }).catch(() => {});
+
+      for (const b of borradores) {
+        if (b.fotos && b.fotos.length > 0) {
+          fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
+            method: 'PUT',
+            headers: { Filename: 'relevamiento.json' },
+            body: JSON.stringify({ borrador: b })
+          }).catch(() => {});
+        }
       }
     }
   }

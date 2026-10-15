@@ -21,6 +21,13 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        globIgnores: ['**/monitor/**', '**/visor-bbdd.html', '**/puente-sync.html'],
+        navigateFallbackDenylist: [/\/puente-sync\.html$/, /\/visor-bbdd\.html$/, /\/monitor\//],
+      },
       includeAssets: [
         'favicon.ico',
         'favicon.png',

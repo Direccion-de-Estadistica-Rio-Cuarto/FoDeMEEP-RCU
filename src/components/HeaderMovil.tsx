@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Escuela, ResultadoIndice } from '../types/fodemep';
 import { Icono } from './Icono';
 import { useTema } from '../services/useTema';
+import { sincronizarTodosLosBorradoresConMonitor } from '../services/storageLocal';
 
 interface HeaderMovilProps {
   escuela: Escuela;
@@ -21,6 +22,20 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
   onVolver,
 }) => {
   const { isOscuro, toggleTema } = useTema();
+  const [sincronizandoManual, setSincronizandoManual] = useState(false);
+  const [sincronizadoOk, setSincronizadoOk] = useState(false);
+
+  const handleSyncManual = async () => {
+    if (sincronizandoManual) return;
+    setSincronizandoManual(true);
+    try {
+      await sincronizarTodosLosBorradoresConMonitor();
+      setSincronizadoOk(true);
+      setTimeout(() => setSincronizadoOk(false), 3000);
+    } finally {
+      setSincronizandoManual(false);
+    }
+  };
 
   return (
     <header
@@ -63,9 +78,9 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
           </div>
         </div>
 
-        {/* Acciones de cabecera: Modo offline + Botón Cambio de Tema */}
+        {/* Acciones de cabecera: Botón Sincronizar + Botón Cambio de Tema */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Indicador de Conexión Offline / Online */}
+          {/* Botón / Indicador de Sincronización en Línea */}
           {isOffline ? (
             <span
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 shadow-xs"
@@ -75,13 +90,19 @@ export const HeaderMovil: React.FC<HeaderMovilProps> = ({
               <span className="hidden sm:inline">Offline</span>
             </span>
           ) : (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/20 text-white border border-white/30"
-              title="Conexión activa"
+            <button
+              type="button"
+              onClick={handleSyncManual}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 hover:bg-white/30 active:bg-white/40 text-white border border-white/30 cursor-pointer transition-all"
+              title="Toca para forzar el envío de todas las auditorías guardadas al Monitor"
             >
-              <Icono name="wifi" size={14} className="text-emerald-300" />
-              <span className="hidden sm:inline">En Línea</span>
-            </span>
+              <Icono
+                name={sincronizandoManual ? 'sync' : sincronizadoOk ? 'check_circle' : 'cloud_upload'}
+                size={14}
+                className={sincronizandoManual ? 'animate-spin text-sky-200' : 'text-emerald-300'}
+              />
+              <span>{sincronizandoManual ? 'Enviando...' : sincronizadoOk ? '¡Sincronizado!' : 'Sincronizar'}</span>
+            </button>
           )}
 
           {/* Botón oficial de Tema Claro / Oscuro con Material Symbols */}

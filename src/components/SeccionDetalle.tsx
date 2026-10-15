@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { SeccionDef, PreguntaDef } from '../data/preguntasRelevamiento';
 import type { RelevamientoBorrador, FotoRelevamiento } from '../types/fodemep';
-import { comprimirImagen } from '../services/storageLocal';
+import {
+  comprimirImagen,
+  dataUrlABlob,
+  descargarFotoEnTelefono,
+  exportarFotosAlTelefono,
+  guardarFotoBlobIDB,
+} from '../services/storageLocal';
 import { ModalRubricaTecnica } from './ModalRubricaTecnica';
 import { Icono } from './Icono';
 
@@ -28,8 +34,25 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
 }) => {
   const [preguntaRubricaActiva, setPreguntaRubricaActiva] = useState<PreguntaDef | null>(null);
   const [comprimiendoFoto, setComprimiendoFoto] = useState(false);
+  const [guardarCopiaEnTelefono, setGuardarCopiaEnTelefono] = useState<boolean>(() => {
+    try {
+      const val = localStorage.getItem('fodemep_guardar_foto_local');
+      return val === null ? true : val === 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const fotosDeSeccion = borrador.fotos.filter((f) => f.seccionId === seccion.id);
+
+  const handleToggleGuardarCopia = (checked: boolean) => {
+    setGuardarCopiaEnTelefono(checked);
+    try {
+      localStorage.setItem('fodemep_guardar_foto_local', String(checked));
+    } catch {
+      // Ignorar si localStorage no está disponible
+    }
+  };
 
   const handleCapturaFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -39,14 +62,40 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
     try {
       const file = files[0];
       const dataUrl = await comprimirImagen(file, 720, 0.55);
+      const ts = Date.now();
+      const fotoId = `foto-${ts}`;
 
       const nuevaFoto: FotoRelevamiento = {
-        id: `foto-${Date.now()}`,
+        id: fotoId,
         seccionId: seccion.id,
         dataUrl,
-        timestamp: Date.now(),
+        timestamp: ts,
       };
       onAgregarFoto(nuevaFoto);
+
+      // 1. Respaldo binario en almacén fotos_blobs de IndexedDB del teléfono
+      try {
+        const blob = dataUrlABlob(dataUrl);
+        guardarFotoBlobIDB({
+          id: fotoId,
+          escuelaId: borrador.escuelaId,
+          seccionId: seccion.id,
+          blob,
+          mimeType: 'image/jpeg',
+          tamanoBytes: blob.size,
+          timestamp: ts,
+        }).catch(() => {});
+      } catch {
+        // Ignorar error de blob
+      }
+
+      // 2. Si está activa la opción, descargar también copia física .jpg al teléfono
+      if (guardarCopiaEnTelefono) {
+        descargarFotoEnTelefono(
+          dataUrl,
+          `FoDeMEEP_${borrador.escuelaId}_Sec${seccion.id}_${ts}.jpg`
+        );
+      }
     } catch (err) {
       console.error('Error al procesar foto:', err);
     } finally {
@@ -312,7 +361,7 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
 
       {/* 4. Módulo de Evidencias Fotográficas de la Sección */}
       <div className="panel mt-6 shadow-xs">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between gap-2 mb-3">
           <div>
             <h3 className="text-sm font-bold" style={{ color: 'var(--texto)' }}>
               Evidencias Fotográficas de la Sección
@@ -322,7 +371,7 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
             </p>
           </div>
 
-          <label className="boton boton--secundario boton--chico cursor-pointer shadow-xs">
+          <label className="boton boton--secundario boton--chico cursor-pointer shadow-xs flex-shrink-0">
             <Icono name="photo_camera" size={18} className="text-sky-600" />
             <span>{comprimiendoFoto ? 'Procesando...' : 'Tomar Foto'}</span>
             <input
@@ -336,19 +385,65 @@ export const SeccionDetalle: React.FC<SeccionDetalleProps> = ({
           </label>
         </div>
 
+        {/* Opción para guardar copia automática en el teléfono al tomar foto */}
+        <div
+          className="flex items-center justify-between gap-3 px-3 py-2 mb-3 rounded-xl border text-xs"
+          style={{
+            borderColor: 'var(--borde)',
+            backgroundColor: 'color-mix(in srgb, var(--fondo) 70%, var(--superficie))',
+          }}
+        >
+          <label className="flex items-center gap-2 cursor-pointer select-none" style={{ color: 'var(--texto)' }}>
+            <input
+              type="checkbox"
+              checked={guardarCopiaEnTelefono}
+              onChange={(e) => handleToggleGuardarCopia(e.target.checked)}
+              className="w-4 h-4 accent-sky-600 rounded cursor-pointer"
+            />
+            <span className="font-semibold">
+              Guardar copia .jpg en el teléfono al tomar foto
+            </span>
+          </label>
+
+          {fotosDeSeccion.length > 0 && (
+            <button
+              type="button"
+              onClick={() => exportarFotosAlTelefono(fotosDeSeccion, `${borrador.escuelaId}_Sec${seccion.id}`)}
+              className="boton boton--sutil boton--chico cursor-pointer flex-shrink-0"
+              title="Guardar o compartir las fotos de esta sección en el teléfono"
+            >
+              <Icono name="download" size={15} />
+              <span>Exportar ({fotosDeSeccion.length})</span>
+            </button>
+          )}
+        </div>
+
         {fotosDeSeccion.length === 0 ? (
           <div className="p-4 border border-dashed rounded-xl text-center text-xs" style={{ borderColor: 'var(--borde)', color: 'var(--texto-suave)' }}>
             No se han registrado fotografías aún para esta sección.
           </div>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {fotosDeSeccion.map((foto) => (
+            {fotosDeSeccion.map((foto, idx) => (
               <div key={foto.id} className="relative group rounded-xl overflow-hidden border border-slate-200 shadow-xs aspect-square bg-slate-100">
                 <img
                   src={foto.dataUrl}
                   alt="Evidencia técnica"
                   className="w-full h-full object-cover"
                 />
+                <button
+                  type="button"
+                  onClick={() =>
+                    descargarFotoEnTelefono(
+                      foto.dataUrl,
+                      `FoDeMEEP_${borrador.escuelaId}_Sec${seccion.id}_${idx + 1}.jpg`
+                    )
+                  }
+                  className="absolute bottom-1 right-1 p-1 rounded-full bg-black/65 text-white hover:bg-sky-600 transition-colors cursor-pointer"
+                  title="Guardar copia en el teléfono"
+                >
+                  <Icono name="download" size={15} />
+                </button>
                 <button
                   type="button"
                   onClick={() => onEliminarFoto(foto.id)}

@@ -7,6 +7,10 @@ import {
   generarPaqueteExportacion,
   sincronizarConServidor,
 } from '../services/syncManager';
+import {
+  descargarFotoEnTelefono,
+  exportarFotosAlTelefono,
+} from '../services/storageLocal';
 
 interface ResumenAuditoriaProps {
   escuela: Escuela;
@@ -306,13 +310,26 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
 
         {/* Evidencias Fotográficas Adjuntas */}
         <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between gap-2 mb-2">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--texto-suave)' }}>
               Evidencias Fotográficas Adjuntas ({borrador.fotos.length})
             </h3>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: 'color-mix(in srgb, var(--marca) 12%, transparent)', color: 'var(--marca-enlace)' }}>
-              Registro In Situ
-            </span>
+            <div className="flex items-center gap-2">
+              {borrador.fotos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => exportarFotosAlTelefono(borrador.fotos, `CUE-${escuela.cue}`)}
+                  className="boton boton--secundario boton--chico cursor-pointer shadow-xs"
+                  title="Guardar o compartir todas las fotografías en el teléfono"
+                >
+                  <Icono name="download" size={15} />
+                  <span>Guardar Fotos en Teléfono</span>
+                </button>
+              )}
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: 'color-mix(in srgb, var(--marca) 12%, transparent)', color: 'var(--marca-enlace)' }}>
+                Registro In Situ
+              </span>
+            </div>
           </div>
 
           {borrador.fotos.length === 0 ? (
@@ -321,29 +338,49 @@ export const ResumenAuditoria: React.FC<ResumenAuditoriaProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {borrador.fotos.map((foto) => (
-                <a
+              {borrador.fotos.map((foto, idx) => (
+                <div
                   key={foto.id}
-                  href={foto.dataUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block rounded-xl border overflow-hidden shadow-xs"
+                  className="relative rounded-xl border overflow-hidden shadow-xs"
                   style={{ borderColor: 'var(--borde)', backgroundColor: 'var(--fondo)' }}
                 >
-                  <img
-                    src={foto.dataUrl}
-                    alt={`Evidencia Sección ${foto.seccionId} - Pregunta ${foto.preguntaId}`}
-                    className="w-full h-28 object-cover"
-                  />
-                  <div className="p-2 text-[11px] leading-tight">
-                    <div className="font-bold" style={{ color: 'var(--texto)' }}>
-                      Sección {foto.seccionId} · Preg. #{foto.preguntaId}
+                  <a
+                    href={foto.dataUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <img
+                      src={foto.dataUrl}
+                      alt={`Evidencia Sección ${foto.seccionId}`}
+                      className="w-full h-28 object-cover"
+                    />
+                  </a>
+                  <div className="p-2 text-[11px] leading-tight flex items-center justify-between gap-1">
+                    <div>
+                      <div className="font-bold" style={{ color: 'var(--texto)' }}>
+                        Sección {foto.seccionId}{foto.preguntaId ? ` · Preg. #${foto.preguntaId}` : ''}
+                      </div>
+                      <div style={{ color: 'var(--texto-suave)' }}>
+                        {new Date(foto.timestamp).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
+                      </div>
                     </div>
-                    <div style={{ color: 'var(--texto-suave)' }}>
-                      {new Date(foto.timestamp).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        descargarFotoEnTelefono(
+                          foto.dataUrl,
+                          `FoDeMEEP_CUE-${escuela.cue}_Sec${foto.seccionId}_${idx + 1}.jpg`
+                        )
+                      }
+                      className="p-1.5 rounded-lg border cursor-pointer hover:bg-sky-500/10"
+                      style={{ borderColor: 'var(--borde)', color: 'var(--marca-enlace)' }}
+                      title="Descargar copia .jpg en el teléfono"
+                    >
+                      <Icono name="download" size={16} />
+                    </button>
                   </div>
-                </a>
+                </div>
               ))}
             </div>
           )}

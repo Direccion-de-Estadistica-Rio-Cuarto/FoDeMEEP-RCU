@@ -352,3 +352,79 @@ export async function comprimirImagen(
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * Convierte un DataURL en un Blob binario para persistencia en IndexedDB o descarga física.
+ */
+export function dataUrlABlob(dataUrl: string): Blob {
+  const partes = dataUrl.split(',');
+  const mime = partes[0]?.match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const binStr = atob(partes[1] || '');
+  const len = binStr.length;
+  const arr = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    arr[i] = binStr.charCodeAt(i);
+  }
+  return new Blob([arr], { type: mime });
+}
+
+/**
+ * Descarga físicamente una fotografía en la memoria de Archivos / Descargas del teléfono.
+ */
+export function descargarFotoEnTelefono(dataUrl: string, nombreArchivo: string): void {
+  try {
+    const blob = dataUrlABlob(dataUrl);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombreArchivo.endsWith('.jpg') ? nombreArchivo : `${nombreArchivo}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (err) {
+    console.warn('Error al descargar foto en teléfono:', err);
+  }
+}
+
+/**
+ * Exporta todas las fotografías de un relevamiento al teléfono (usando el menú nativo de iOS/Android
+ * "Guardar imágenes / Compartir por WhatsApp" si está disponible, o descarga directa de cada archivo .jpg).
+ */
+export async function exportarFotosAlTelefono(
+  fotos: FotoRelevamiento[],
+  identificadorEscuela: string
+): Promise<void> {
+  if (!fotos || fotos.length === 0) return;
+  const prefijo = identificadorEscuela.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  try {
+    const archivos: File[] = fotos.map((f, idx) => {
+      const blob = dataUrlABlob(f.dataUrl);
+      const nombre = `FoDeMEEP_${prefijo}_Sec${f.seccionId}_${idx + 1}.jpg`;
+      return new File([blob], nombre, { type: 'image/jpeg' });
+    });
+
+    if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: archivos })) {
+      await navigator.share({
+        title: `Evidencias Fotográficas FoDeMEEP (${identificadorEscuela})`,
+        text: `${fotos.length} evidencia(s) fotográfica(s) del relevamiento ${identificadorEscuela}`,
+        files: archivos,
+      });
+      return;
+    }
+  } catch (err: any) {
+    if (err && err.name === 'AbortError') return;
+    // Si el navegador no soporta Web Share de archivos, continúa con descarga individual
+  }
+
+  fotos.forEach((f, idx) => {
+    setTimeout(() => {
+      descargarFotoEnTelefono(
+        f.dataUrl,
+        `FoDeMEEP_${prefijo}_Sec${f.seccionId}_${idx + 1}.jpg`
+      );
+    }, idx * 250);
+  });
+}
+

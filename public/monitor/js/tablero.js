@@ -631,6 +631,23 @@
       }
     } catch (e) {}
 
+    // 3b. Si no hay API local (ej. GitHub Pages), cargar datos/relevamientos-activos.json estático
+    if (!servidorLocalOk) {
+      try {
+        const respStatic = await fetch('datos/relevamientos-activos.json?t=' + Date.now(), { cache: 'no-store' });
+        if (respStatic.ok) {
+          const mapaStatic = await respStatic.json();
+          const activosStatic = (mapaStatic && mapaStatic.activos) ? mapaStatic.activos : mapaStatic;
+          if (activosStatic && typeof activosStatic === 'object') {
+            ESTADO.relevamientosVivos = activosStatic;
+            Object.values(activosStatic).forEach(function (b) {
+              if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
+            });
+          }
+        }
+      } catch (e) {}
+    }
+
     // 4. Solo si no hay servidor local activo (ej. GitHub Pages estático), consultar ntfy.sh directamente
     if (!servidorLocalOk) {
       try {

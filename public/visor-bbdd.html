@@ -437,14 +437,25 @@
 
     async function cargarDatos() {
       try {
-        const [rBbdd, rAct] = await Promise.all([
-          fetch('/datos/bbdd-fodemeep.json?t=' + Date.now()),
-          fetch('/api/relevamientos-vivos?t=' + Date.now())
-        ]);
-        if (rBbdd.ok) bbddCompleta = await rBbdd.json();
-        if (rAct.ok) {
+        let rBbdd = await fetch('./monitor/datos/bbdd-fodemeep.json?t=' + Date.now()).catch(() => null);
+        if (!rBbdd || !rBbdd.ok) {
+          rBbdd = await fetch('/datos/bbdd-fodemeep.json?t=' + Date.now()).catch(() => null);
+        }
+        if (rBbdd && rBbdd.ok) bbddCompleta = await rBbdd.json();
+
+        let rAct = await fetch('/api/relevamientos-vivos?t=' + Date.now()).catch(() => null);
+        if (rAct && rAct.ok) {
           const dAct = await rAct.json();
           activosMap = (dAct && dAct.activos) ? dAct.activos : {};
+        } else {
+          let rActStatic = await fetch('./monitor/datos/relevamientos-activos.json?t=' + Date.now()).catch(() => null);
+          if (!rActStatic || !rActStatic.ok) {
+            rActStatic = await fetch('/datos/relevamientos-activos.json?t=' + Date.now()).catch(() => null);
+          }
+          if (rActStatic && rActStatic.ok) {
+            const dStatic = await rActStatic.json();
+            activosMap = (dStatic && dStatic.activos) ? dStatic.activos : (dStatic || {});
+          }
         }
 
         if (bbddCompleta && Array.isArray(bbddCompleta.instituciones)) {

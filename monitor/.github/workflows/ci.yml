@@ -1,0 +1,55 @@
+name: Revisar tablero
+
+# Corre solo, en GitHub, cada vez que alguien sube algo o abre un Pull Request.
+# Si algo falla, el cambio queda marcado en rojo y no debería publicarse hasta
+# arreglarlo. El equipo no ejecuta nada a mano.
+#
+# Dos jobs, independientes:
+#   1) secretos  — escaneo de claves (gitleaks). Control de seguridad de base,
+#                  ya existía; no es parte de la unificación visual.
+#   2) reglas    — bash scripts/revisar-tablero.sh: unificación visual
+#                  (header/footer iguales, design system, metadata, accesibilidad).
+#                  Lo mismo se puede correr local antes de commitear.
+#
+# Qué revisa el job 2 (y qué queda a criterio de una persona): CHECKLIST.md
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # 1) SEGURIDAD (de base, no toca la unificación visual): busca claves y
+  #    secretos filtrados, incluso en el historial de git.
+  # ---------------------------------------------------------------------------
+  secretos:
+    name: Escaneo de claves (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código (con todo el historial)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Buscar secretos
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  # ---------------------------------------------------------------------------
+  # 2) UNIFICACIÓN VISUAL: lo mecanizable de CHECKLIST.md, en un script.
+  # ---------------------------------------------------------------------------
+  reglas:
+    name: Unificación visual (scripts/revisar-tablero.sh)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ubuntu-latest ya trae bash, grep y shasum — no hace falta instalar nada.
+      - name: Correr los controles
+        run: bash scripts/revisar-tablero.sh

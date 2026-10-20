@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sincronizador Directo FoDeMEEP</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b0f17;
+      color: #f8fafc;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    h1 { font-size: 18px; margin: 0 0 6px 0; color: #38bdf8; }
+    p { font-size: 13px; color: #94a3b8; margin: 0 0 16px 0; line-height: 1.5; }
+    .status {
+      padding: 12px;
+      border-radius: 10px;
+      background: #1e293b;
+      font-size: 13px;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      text-align: center;
+      text-decoration: none;
+      box-sizing: border-box;
+    }
+    .btn-primary { background: #0284c7; color: #fff; }
+    .btn-secondary { background: #10b981; color: #052e16; }
+    .btn-outline { background: transparent; border: 1px solid #334155; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+<div class="card" id="ui-container">
+  <h1>Puente de Sincronización FoDeMEEP</h1>
+  <p>Extrayendo auditorías y fotografías almacenadas en la memoria interna (IndexedDB / LocalStorage) de este dispositivo...</p>
+  <div class="status" id="estado-sync">Analizando memoria del navegador...</div>
+  <div id="lista-escuelas"></div>
+  <button class="btn btn-primary" onclick="recolectarYEnviar(true)">🔄 Forzar Reenvío Ahora al Monitor</button>
+  <button class="btn btn-secondary" onclick="descargarRespaldoCompleto()">📥 Descargar / Compartir Archivo JSON</button>
+  <a class="btn btn-outline" href="/FoDeMEEP-RCU/">⬅ Volver al Formulario Principal</a>
+</div>
+
+<script>
+(function () {
+  const DB_NOMBRE = 'FoDeMEEP_CAMPO_DB';
+  let ultimosBorradores = [];
+
+  // Si se abre en ventana principal (no iframe), limpiar Service Workers viejos atascados sin tocar IndexedDB
+  if (window.parent === window && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((r) => r.unregister().catch(() => {}));
+    }).catch(() => {});
+  }
+
+  function obtenerIdEsc(b) {
+    if (!b || typeof b !== 'object') return null;
+    return b.institucionId || b.escuelaId || b.institucionCue || null;
+  }
+
+  function leerLocalStorage() {
+    const lista = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('fodemep_relevamiento')) {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const b = JSON.parse(raw);
+            if (obtenerIdEsc(b)) lista.push(b);
+          }
+        }
+      }
+    } catch (e) {}
+    return lista;
+  }
+
+  function blobADataUrl(blob) {
+    return new Promise((resolve) => {
+      try {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = () => resolve(null);
+        r.readAsDataURL(blob);
+      } catch (e) { resolve(null); }
+    });
+  }
+
+  function leerIndexedDB() {
+    return new Promise((resolve) => {
+      try {
+        if (!window.indexedDB) return resolve({ borradores: [], blobs: [] });
+        const req = window.indexedDB.open(DB_NOMBRE, 1);
+        req.onerror = () => resolve({ borradores: [], blobs: [] });
+        req.onsuccess = (ev) => {
+          const db = ev.target.result;
+          const borradores = [];
+          const blobs = [];
+          const stores = [];
+          if (db.objectStoreNames.contains('relevamientos')) stores.push('relevamientos');
+          if (db.objectStoreNames.contains('sync_queue')) stores.push('sync_queue');
+          if (db.objectStoreNames.contains('fotos_blobs')) stores.push('fotos_blobs');
+          if (stores.length === 0) return resolve({ borradores: [], blobs: [] });
+          const tx = db.transaction(stores, 'readonly');
+          let pendientes = stores.length;
+          const fin = () => {
+            pendientes--;
+            if (pendientes <= 0) resolve({ borradores, blobs });
+          };
+          if (stores.includes('relevamientos')) {
+            const getAllRel = tx.objectStore('relevamientos').getAll();
+            getAllRel.onsuccess = () => {
+              (getAllRel.result || []).forEach((r) => borradores.push(r));
+              fin();
+            };
+            getAllRel.onerror = fin;
+          }
+          if (stores.includes('sync_queue')) {
+            const getAllSync = tx.objectStore('sync_queue').getAll();
+            getAllSync.onsuccess = () => {
+              (getAllSync.result || []).forEach((item) => {
+                if (item && item.payloadJSON) {
+                  try {
+                    borradores.push(JSON.parse(item.payloadJSON));
+                  } catch (e) {}
+                }
+              });
+              fin();
+            };
+            getAllSync.onerror = fin;
+          }
+          if (stores.includes('fotos_blobs')) {
+            const getAllBlobs = tx.objectStore('fotos_blobs').getAll();
+            getAllBlobs.onsuccess = () => {
+              (getAllBlobs.result || []).forEach((b) => blobs.push(b));
+              fin();
+            };
+            getAllBlobs.onerror = fin;
+          }
+        };
+      } catch (e) {
+        resolve({ borradores: [], blobs: [] });
+      }
+    });
+  }
+
+  function comprimirDataUrl(dataUrl) {
+    if (!dataUrl || dataUrl.length <= 50000) return Promise.resolve(dataUrl);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let w = img.width, h = img.height, maxD = 640;
+          if (w > h) { if (w > maxD) { h = Math.round(h * maxD / w); w = maxD; } }
+          else { if (h > maxD) { w = Math.round(w * maxD / h); h = maxD; } }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const ctx = c.getContext('2d');
+          if (!ctx) return resolve(dataUrl);
+          ctx.drawImage(img, 0, 0, w, h);
+          let out = c.toDataURL('image/jpeg', 0.52);
+          if (out.length > 55000) out = c.toDataURL('image/jpeg', 0.42);
+          resolve(out.length < dataUrl.length ? out : dataUrl);
+        } catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
+  window.recolectarYEnviar = async function (manual) {
+    const elEstado = document.getElementById('estado-sync');
+    const elLista = document.getElementById('lista-escuelas');
+    if (elEstado && manual) elEstado.textContent = 'Sincronizando con el Monitor...';
+
+    const porEscuela = {};
+    const desdeLS = leerLocalStorage();
+    const idbData = await leerIndexedDB();
+
+    for (const b of idbData.blobs) {
+      if (b && b.escuelaId && b.blob) {
+        const dUrl = await blobADataUrl(b.blob);
+        if (dUrl) {
+          idbData.borradores.push({
+            escuelaId: b.escuelaId,
+            respuestas: {},
+            fotos: [{ id: b.id, seccionId: b.seccionId || 1, preguntaId: b.preguntaId, timestamp: b.timestamp || Date.now(), dataUrl: dUrl }]
+          });
+        }
+      }
+    }
+
+    idbData.borradores.concat(desdeLS).forEach((b) => {
+      const idEsc = obtenerIdEsc(b);
+      if (!idEsc) return;
+      const resp = b.Respuestas || b.respuestas || {};
+      const nResp = Object.keys(resp).filter((k) => resp[k] !== undefined && resp[k] !== null && resp[k] !== '' && resp[k] !== 'na').length;
+      const nFotos = (b.fotos || []).length;
+      if (nResp > 0 || nFotos > 0) {
+        const prev = porEscuela[idEsc];
+        if (!prev) {
+          porEscuela[idEsc] = Object.assign({}, b, { fotos: (b.fotos || []).slice() });
+        } else {
+          const mapaFotos = {};
+          (prev.fotos || []).concat(b.fotos || []).forEach((f) => {
+            if (f && f.dataUrl) mapaFotos[f.id || (f.seccionId + '-' + f.timestamp)] = f;
+          });
+          const respComb = Object.assign({}, prev.respuestas || prev.Respuestas || {}, resp);
+          porEscuela[idEsc] = Object.assign({}, prev, b, {
+            respuestas: respComb,
+            Respuestas: respComb,
+            finalizado: Boolean(prev.finalizado || b.finalizado),
+            fotos: Object.values(mapaFotos)
+          });
+        }
+      }
+    });
+
+    const borradoresCrudos = Object.values(porEscuela);
+    if (borradoresCrudos.length === 0) {
+      if (elEstado) {
+        elEstado.innerHTML = '⚠️ No se encontraron relevamientos guardados en este navegador (Origen: <b>' + location.origin + '</b>). Si cargaste datos desde el ícono de pantalla de inicio o en otra pestaña, abrí este enlace allí.';
+      }
+      return;
+    }
+
+    const borradores = await Promise.all(borradoresCrudos.map(async (b) => {
+      const fotosOpt = await Promise.all((b.fotos || []).map(async (f) => Object.assign({}, f, {
+        dataUrl: await comprimirDataUrl(f.dataUrl)
+      })));
+      return Object.assign({}, b, { fotos: fotosOpt });
+    }));
+
+    ultimosBorradores = borradores;
+
+    if (elLista) {
+      elLista.innerHTML = borradores.map((b) => {
+        const nR = Object.keys(b.respuestas || b.Respuestas || {}).length;
+        const nF = (b.fotos || []).length;
+        return '<div class="item"><b>' + (b.escuelaId || b.institucionId) + '</b> · Técnico: ' + (b.tecnicoNombre || 'S/D') + '<br><span style="color:#10b981">' + nR + ' respuestas</span> · <span style="color:#38bdf8">' + nF + ' foto(s)</span></div>';
+      }).join('');
+    }
+
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ tipo: 'FODEMEEP_SYNC_BORRADORES', borradores }, '*');
+    }
+
+    const bodyStr = JSON.stringify({ borradores });
+    fetch('http://localhost:5505/api/relevamientos-vivos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: bodyStr
+    }).catch(() => {});
+
+    let okCloud = false;
+    try {
+      const livianos = borradores.map((b) => Object.assign({}, b, { fotos: [] }));
+      const rPost = await fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
+        method: 'POST',
+        body: JSON.stringify({ borradores: livianos })
+      });
+      if (rPost.ok) okCloud = true;
+
+      for (const b of borradores) {
+        if (b.fotos && b.fotos.length > 0) {
+          const rPut = await fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod', {
+            method: 'PUT',
+            headers: { Filename: 'relevamiento.json' },
+            body: JSON.stringify({ borrador: b })
+          });
+          if (rPut.ok) okCloud = true;
+        }
+      }
+    } catch (e) {}
+
+    if (elEstado) {
+      elEstado.innerHTML = okCloud
+        ? '✅ <b>¡Sincronizado con éxito!</b> Se enviaron ' + borradores.length + ' relevamiento(s) al Monitor.'
+        : '⚠️ Se detectaron ' + borradores.length + ' relevamiento(s), pero la red bloqueó el envío automático. Tocá el botón verde abajo para descargar/compartir el archivo JSON.';
+    }
+  };
+
+  window.descargarRespaldoCompleto = function () {
+    if (!ultimosBorradores || ultimosBorradores.length === 0) {
+      alert('No hay relevamientos en memoria para exportar.');
+      return;
+    }
+    const blob = new Blob([JSON.stringify({ borradores: ultimosBorradores }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'FoDeMEEP_Respaldo_Auditorias_' + Date.now() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  window.recolectarYEnviar(false);
+
+  window.addEventListener('storage', (e) => {
+    if (e.key && e.key.startsWith('fodemep_relevamiento')) {
+      window.recolectarYEnviar(false);
+    }
+  });
+
+  if (typeof BroadcastChannel !== 'undefined') {
+    const canal = new BroadcastChannel('fodemep_live_channel');
+    canal.onmessage = (msg) => {
+      if (msg.data && msg.data.borrador) {
+        window.recolectarYEnviar(false);
+      }
+    };
+  }
+})();
+</script>
+</body>
+</html>

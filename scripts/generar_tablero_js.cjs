@@ -77,11 +77,23 @@ const jsContent = `/* ==========================================================
   };
 
   /* --- Inicialización y Carga de la BBDD del Relevamiento ----------------- */
+  let ultimaFirmaSyncVivo = '';
+
+  function calcularFirmaActivos(mapaActivos) {
+    if (!mapaActivos || typeof mapaActivos !== 'object') return '';
+    return Object.keys(mapaActivos).sort().map(function (k) {
+      const b = mapaActivos[k] || {};
+      const r = b.Respuestas || b.respuestas || {};
+      const f = b.fotos || b.evidencias || [];
+      return k + ':' + Object.keys(r).length + ':' + f.length + ':' + (b.fechaUltimaModificacion || b.timestamp || 0);
+    }).join('|');
+  }
+
   async function iniciar() {
     try {
       let datos = null;
       try {
-        const resp = await fetch('datos/bbdd-fodemeep.json');
+        const resp = await fetch('datos/bbdd-fodemeep.json?t=' + Date.now(), { cache: 'no-store' });
         if (resp.ok) {
           datos = await resp.json();
         }
@@ -187,17 +199,28 @@ const jsContent = `/* ==========================================================
       if (!idEsc) return;
       const inst = buscarInstitucionPorBorrador(idEsc);
       if (inst) {
-        const tsNuevo = Number(b.fechaUltimaModificacion || (b.fechaModificacion ? Date.parse(b.fechaModificacion) : 0) || 0);
         const prev = ESTADO.borradoresActivos[inst.id];
-        const tsPrev = prev ? Number(prev.fechaUltimaModificacion || (prev.fechaModificacion ? Date.parse(prev.fechaModificacion) : 0) || 0) : 0;
         const fotosNuevas = (b.fotos || b.evidencias || []);
         const fotosPrevias = prev ? (prev.fotos || prev.evidencias || []) : (inst.relevamiento && inst.relevamiento.evidencias ? inst.relevamiento.evidencias : []);
-        const aportaFotos = fotosNuevas.length > fotosPrevias.length;
+        const respPrev = prev ? (prev.Respuestas || prev.respuestas || {}) : {};
+        const respEntrantes = b.Respuestas || b.respuestas || {};
+        const nRespPrev = Object.keys(respPrev).length;
+        const nRespEnt = Object.keys(respEntrantes).length;
+        const respFinales = nRespEnt >= nRespPrev
+          ? Object.assign({}, respPrev, respEntrantes)
+          : Object.assign({}, respEntrantes, respPrev);
 
-        if (prev && tsPrev > tsNuevo && !b.forzarActualizacion && !aportaFotos) return;
+        const mapaFotos = {};
+        fotosPrevias.concat(fotosNuevas).forEach(function (f) {
+          if (f && f.dataUrl) {
+            mapaFotos[f.id || (f.seccionId + '-' + f.timestamp)] = f;
+          }
+        });
 
         const borradorCombinado = Object.assign({}, prev || {}, b, {
-          fotos: fotosNuevas.length > 0 ? fotosNuevas : fotosPrevias
+          Respuestas: respFinales,
+          respuestas: respFinales,
+          fotos: Object.values(mapaFotos)
         });
 
         const aplicado = evaluarBorradorSobreInstitucion(inst, borradorCombinado);
@@ -230,6 +253,7 @@ const jsContent = `/* ==========================================================
   async function integrarBorradoresLocalStorage() {
     if (!ESTADO.bbdd) return;
     const recolectados = [];
+    let servidorLocalOk = false;
 
     // 1. Leer claves fodemep_relevamiento_v2_* desde localStorage
     try {
@@ -266,12 +290,14 @@ const jsContent = `/* ==========================================================
       }
     } catch (e) {}
 
-    // 3. Leer desde /api/relevamientos-vivos (o datos/relevamientos-activos.json)
+    // 3. Leer desde /api/relevamientos-vivos (servidor local Node sin bloqueo CORS)
     try {
-      const resp = await fetch('/api/relevamientos-vivos');
+      const resp = await fetch('/api/relevamientos-vivos?t=' + Date.now(), { cache: 'no-store' });
       if (resp.ok) {
         const data = await resp.json();
         if (data && data.activos) {
+          servidorLocalOk = true;
+          ultimaFirmaSyncVivo = calcularFirmaActivos(data.activos);
           Object.values(data.activos).forEach(function (b) {
             if (obtenerIdEscuelaBorrador(b)) recolectados.push(b);
           });
@@ -279,52 +305,79 @@ const jsContent = `/* ==========================================================
       }
     } catch (e) {}
 
-    // 4. Leer desde Relay Cloud HTTPS (para sincronización directa con celulares en campo, incluyendo fotos adjuntas)
-    try {
-      const respCloud = await fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod/json?poll=1&since=48h');
-      if (respCloud.ok) {
-        const textCloud = await respCloud.text();
-        if (textCloud && textCloud.trim()) {
-          const lineas = textCloud.trim().split(String.fromCharCode(10));
-          for (let idxL = 0; idxL < lineas.length; idxL++) {
-            try {
-              const evt = JSON.parse(lineas[idxL]);
-              if (evt && evt.event === 'message') {
-                let parsed = null;
-                if (evt.attachment && evt.attachment.url) {
-                  const attResp = await fetch(evt.attachment.url);
-                  if (attResp.ok) parsed = await attResp.json();
-                } else if (evt.message) {
-                  parsed = JSON.parse(evt.message);
-                }
-                if (parsed) {
-                  if (obtenerIdEscuelaBorrador(parsed)) recolectados.push(parsed);
-                  else if (Array.isArray(parsed.borradores)) {
-                    parsed.borradores.forEach(function (x) { if (obtenerIdEscuelaBorrador(x)) recolectados.push(x); });
+    // 4. Solo si no hay servidor local activo (ej. GitHub Pages estático), consultar ntfy.sh directamente
+    if (!servidorLocalOk) {
+      try {
+        const respCloud = await fetch('https://ntfy.sh/fodemep_rcu_sync_2026_prod/json?poll=1&since=48h');
+        if (respCloud.ok) {
+          const textCloud = await respCloud.text();
+          if (textCloud && textCloud.trim()) {
+            const lineas = textCloud.trim().split(String.fromCharCode(10));
+            for (let idxL = 0; idxL < lineas.length; idxL++) {
+              try {
+                const evt = JSON.parse(lineas[idxL]);
+                if (evt && evt.event === 'message') {
+                  let parsed = null;
+                  if (evt.attachment && evt.attachment.url) {
+                    const attResp = await fetch(evt.attachment.url);
+                    if (attResp.ok) parsed = await attResp.json();
+                  } else if (evt.message) {
+                    parsed = JSON.parse(evt.message);
+                  }
+                  if (parsed) {
+                    if (obtenerIdEscuelaBorrador(parsed)) recolectados.push(parsed);
+                    else if (parsed.borrador && obtenerIdEscuelaBorrador(parsed.borrador)) recolectados.push(parsed.borrador);
+                    else if (Array.isArray(parsed.borradores)) {
+                      parsed.borradores.forEach(function (x) { if (obtenerIdEscuelaBorrador(x)) recolectados.push(x); });
+                    }
                   }
                 }
-              }
-            } catch (errLine) {}
+              } catch (errLine) {}
+            }
           }
         }
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
 
     if (recolectados.length > 0) {
       aplicarListaBorradores(recolectados, false);
     }
 
-    // Si ya hay alguna escuela relevada en bbdd-fodemeep.json, seleccionarla por defecto
-    const primeraRelevada = ESTADO.bbdd.instituciones.find(function (i) {
+    // Si ya hay alguna escuela relevada en bbdd-fodemeep.json, seleccionar por defecto la que tenga más respuestas cargadas
+    const relevadasOrdenadas = ESTADO.bbdd.instituciones.filter(function (i) {
       return i.ies && i.ies.clasificacion !== 'Sin relevar';
+    }).sort(function (a, b) {
+      const ra = (a.relevamiento && a.relevamiento.respuestasCargadas) || 0;
+      const rb = (b.relevamiento && b.relevamiento.respuestasCargadas) || 0;
+      return rb - ra;
     });
-    if (primeraRelevada) {
-      ESTADO.escuelaSeleccionadaId = primeraRelevada.id;
+    if (relevadasOrdenadas.length > 0) {
+      ESTADO.escuelaSeleccionadaId = relevadasOrdenadas[0].id;
     }
   }
 
-  /* Vincula escuchas en vivo (BroadcastChannel, Storage, postMessage y SSE Cloud Relay) */
+  /* Vincula escuchas en vivo (Polling /api/relevamientos-vivos, BroadcastChannel, Storage, postMessage y SSE Cloud Relay) */
   function vincularSincronizacionTiempoReal() {
+    // Polling automático cada 3 segundos contra el servidor local para actualizar el Monitor sin tocar F5
+    setInterval(async function () {
+      try {
+        const resp = await fetch('/api/relevamientos-vivos?t=' + Date.now(), { cache: 'no-store' });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.activos) {
+            const nuevaFirma = calcularFirmaActivos(data.activos);
+            if (nuevaFirma && nuevaFirma !== ultimaFirmaSyncVivo) {
+              ultimaFirmaSyncVivo = nuevaFirma;
+              const lista = Object.values(data.activos).filter(function (b) { return Boolean(obtenerIdEscuelaBorrador(b)); });
+              if (lista.length > 0) {
+                aplicarListaBorradores(lista, true);
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }, 3000);
+
     window.addEventListener('storage', function (ev) {
       if (ev.key && ev.key.indexOf('fodemep_relevamiento_v2_') === 0 && ev.newValue) {
         try {
@@ -358,7 +411,7 @@ const jsContent = `/* ==========================================================
       }
     });
 
-    // Suscripción SSE en tiempo real al Relay Cloud para recibir cierres y fotos desde iPhone/Android al instante
+    // Suscripción SSE en tiempo real al Relay Cloud para recibir notificaciones al instante
     if (typeof EventSource !== 'undefined') {
       try {
         const sse = new EventSource('https://ntfy.sh/fodemep_rcu_sync_2026_prod/sse');
@@ -376,6 +429,8 @@ const jsContent = `/* ==========================================================
             }
             if (obtenerIdEscuelaBorrador(payload)) {
               aplicarListaBorradores([payload], true);
+            } else if (payload && payload.borrador && obtenerIdEscuelaBorrador(payload.borrador)) {
+              aplicarListaBorradores([payload.borrador], true);
             } else if (payload && Array.isArray(payload.borradores)) {
               aplicarListaBorradores(payload.borradores, true);
             }
@@ -425,7 +480,8 @@ const jsContent = `/* ==========================================================
     if (
       (inst.ies.clasificacion === 'Sin relevar' || (inst.relevamiento && inst.relevamiento.estado === 'SIN_RELEVAR')) &&
       inst.ies.global === 0 &&
-      (!inst.incidencias || inst.incidencias.length === 0)
+      (!inst.incidencias || inst.incidencias.length === 0) &&
+      !(inst.relevamiento && inst.relevamiento.respuestasCargadas > 0)
     ) {
       return {
         puntajeBase: 0,
@@ -474,13 +530,18 @@ const jsContent = `/* ==========================================================
       const estabaResuelta = (inc.estado === 'RESUELTA');
       const ahoraResuelta = Boolean(ESTADO.simulacionResueltas[inc.id]);
       const dim = mapaDimensionPorRubro[inc.tipoCodigo] || 'estructuraCubiertas';
+      const dimCompleta = subOriginal[dim] > 0;
 
       if (!estabaResuelta && ahoraResuelta) {
-        subDinamico[dim] = Math.min(100, subDinamico[dim] + inc.impactoPuntosIes * 2);
+        if (dimCompleta) {
+          subDinamico[dim] = Math.min(100, subDinamico[dim] + inc.impactoPuntosIes * 2);
+        }
         puntosRecuperados += inc.impactoPuntosIes;
         intervencionesSimuladas++;
       } else if (estabaResuelta && !ahoraResuelta) {
-        subDinamico[dim] = Math.max(20, subDinamico[dim] - inc.impactoPuntosIes * 2);
+        if (dimCompleta) {
+          subDinamico[dim] = Math.max(10, subDinamico[dim] - inc.impactoPuntosIes * 2);
+        }
         puntosRecuperados -= inc.impactoPuntosIes;
       }
 
@@ -501,7 +562,7 @@ const jsContent = `/* ==========================================================
       subDinamico.entornoExterior * 0.05
     );
 
-    const globalFinal = Math.max(15, Math.min(100, Math.round(puntajeBase * factorKillSwitch)));
+    const globalFinal = Math.max(0, Math.min(100, Math.round(puntajeBase * factorKillSwitch)));
     let clasificacion = 'Óptimo';
     if (killSwitchActivo || globalFinal < 50) clasificacion = 'Crítico';
     else if (globalFinal < 70) clasificacion = 'Regular';
@@ -1316,7 +1377,13 @@ const jsContent = `/* ==========================================================
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">school</span> Nivel: <strong>' + escapar(inst.nivel) + ' (' + escapar(inst.modalidad) + ')</strong></span>' +
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">groups</span> Matrícula 2025: <strong>' + formatearNumero(inst.matricula2025) + ' alumnos</strong> (' + inst.alumnosDiscapacidad + ' con CUD)</span>' +
               '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">accessible</span> Rampa: <strong>' + (inst.tieneRampa ? 'Sí' : 'No') + '</strong> · Baño Adaptado: <strong>' + (inst.tieneBanoAdaptado ? 'Sí' : 'No') + '</strong></span>' +
-              '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">local_fire_department</span> Calefactores activos: <strong>' + inst.relevamiento.calefactoresFuncionando + '/' + (inst.relevamiento.calefactoresFuncionando + inst.relevamiento.calefactoresAveriados) + '</strong></span>' +
+              '<span class="pill-dato"><span class="icono icono--chico" aria-hidden="true">local_fire_department</span> Climatización: <strong>' +
+                inst.relevamiento.calefactoresFuncionando + ' calefactor(es) activo(s)</strong> (Gas: ' + (inst.relevamiento.calefactoresGas || 0) +
+                ' · Eléctricos: ' + (inst.relevamiento.calefactoresElectricos || 0) +
+                ' · Averiados: ' + (inst.relevamiento.calefactoresAveriados || 0) +
+                ' · Cobertura suficiente: ' + (inst.relevamiento.coberturaCalefaccion === 'si' ? 'Sí' : (inst.relevamiento.coberturaCalefaccion === 'no' ? 'No' : 'S/D')) +
+                ' · Ventiladores: ' + (inst.relevamiento.ventiladoresFuncionando || 0) + '/' + (inst.relevamiento.ventiladoresInstalados || 0) +
+                ' · Aires Acond.: ' + (inst.relevamiento.airesFuncionando || 0) + '/' + (inst.relevamiento.airesInstalados || 0) + ')</span>' +
             '</div>' +
           '</div>' +
           '<div class="bloque-score-ies">' +
@@ -1342,28 +1409,148 @@ const jsContent = `/* ==========================================================
           : '');
     }
 
-    // 4.2 Desglose de las 7 Dimensiones Ponderadas
+    // 4.2 Desglose de las 7 Dimensiones Ponderadas + Datos Relevados por Dimensión
+    const ETIQUETAS_PREGUNTAS_DIM = {
+      seguridadCritica: [
+        [42, 'Tablero eléctrico principal'],
+        [43, 'Interruptor diferencial (disyuntor)'],
+        [45, 'Puesta a tierra (jabalina)'],
+        [46, 'Cables expuestos o sobrecargados'],
+        [51, 'Luminarias sin funcionar'],
+        [52, 'Tomacorrientes sin funcionar'],
+        [112, 'Servicio de gas (Red/Envasado)'],
+        [113, 'Estado cañerías de gas'],
+        [114, 'Pérdidas/olor a gas'],
+        [115, 'Llaves de paso accesibles'],
+        [116, 'Revisión anual gasista matriculado'],
+        [117, 'Ventilación permanente (rejillas)'],
+        [118, 'Estado artefactos de gas'],
+        [119, 'Detectores de monóxido'],
+        [126, 'Matafuegos vigentes'],
+        [127, 'Salidas de emergencia libres'],
+        [136, 'Señalización de evacuación']
+      ],
+      aguaSaneamiento: [
+        [57, 'Provisión de agua potable'],
+        [58, 'Limpieza de tanques (últ. 6 meses)'],
+        [59, 'Bomba de agua funcionando'],
+        [60, 'Estado de canillas y llaves'],
+        [87, 'Desagües cloacales'],
+        [88, 'Desbordes cloacales frecuentes'],
+        [89, 'Desagües pluviales y canaletas'],
+        [90, 'Acumulación de agua en lluvias'],
+        [91, 'Estado cámaras sépticas/pozos'],
+        [93, 'Inodoros funcionando'],
+        [98, 'Lavamanos funcionando'],
+        [99, 'Estado griferías sanitarios'],
+        [101, 'Pérdidas de agua en sanitarios'],
+        [103, 'Baños docentes suficientes'],
+        [104, 'Estado baños docentes'],
+        [106, 'Revestimientos sanitarios'],
+        [108, 'Ventilación en sanitarios']
+      ],
+      estructuraCubiertas: [
+        [23, 'Tipo de cubierta/techo'],
+        [25, 'Estado general de techos'],
+        [27, 'Filtraciones o goteras'],
+        [28, 'Humedad en paredes o cielorrasos'],
+        [30, 'Estado paredes interiores'],
+        [32, 'Estado paredes exteriores'],
+        [34, 'Estado de pisos'],
+        [36, 'Estado de puertas'],
+        [38, 'Estado de ventanas'],
+        [39, 'Vidrios rotos o faltantes']
+      ],
+      climatizacion: [
+        [66, 'Calefactores en funcionamiento'],
+        [67, 'Calefactores a gas'],
+        [68, 'Calefactores eléctricos'],
+        [69, 'Calefactores fuera de servicio'],
+        [70, 'Cobertura de calefacción suficiente'],
+        [80, 'Ventiladores instalados'],
+        [81, 'Ventiladores en funcionamiento'],
+        [82, 'Aires acondicionados instalados'],
+        [83, 'Aires acondicionados funcionando']
+      ],
+      alimentacionCocina: [
+        [159, 'Dispone de cocina o comedor'],
+        [162, 'Artefactos de cocina funcionando'],
+        [163, 'Revestimientos y mesadas de cocina']
+      ],
+      accesibilidad: [
+        [148, 'Rampas de acceso reglamentarias'],
+        [152, 'Sanitario adaptado para discapacidad']
+      ],
+      entornoExterior: [
+        [141, 'Cerco perimetral completo y seguro'],
+        [143, 'Estado de patios y playones'],
+        [144, 'Estado de veredas perimetrales']
+      ]
+    };
+
     const contDim = document.getElementById('desglose-dimensiones-escuela');
     if (contDim) {
+      const vivoInst = (ESTADO.relevamientosVivos && ESTADO.relevamientosVivos[inst.id]) || null;
+      const respMap = (vivoInst && (vivoInst.respuestas || vivoInst.Respuestas)) || (inst.relevamiento && inst.relevamiento.respuestas) || {};
+      const compMap = (inst.ies && inst.ies.completitudDimensiones) || {};
+
       contDim.innerHTML = ESTADO.bbdd.dimensionesIes.map(function (dim, idx) {
-        const valorActual = est.subindices[dim.id] || 0;
-        const valorOriginal = inst.ies.subindices[dim.id] || 0;
+        const preguntasDef = ETIQUETAS_PREGUNTAS_DIM[dim.id] || [];
+        let respondidasCount = 0;
+        const itemsCargadosHtml = [];
+
+        preguntasDef.forEach(function (par) {
+          const pId = String(par[0]);
+          const pLabel = par[1];
+          const rawVal = respMap[pId];
+          const tieneResp = rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== '' && !(Array.isArray(rawVal) && rawVal.length === 0);
+          if (tieneResp) {
+            respondidasCount++;
+            let valFormateado = Array.isArray(rawVal) ? rawVal.join(', ') : String(rawVal);
+            if (valFormateado === 'si') valFormateado = 'Sí';
+            if (valFormateado === 'no') valFormateado = 'No';
+            itemsCargadosHtml.push(
+              '<span class="pill-dato" style="font-size: 11px; padding: 2px 8px;">' +
+                '<span class="texto-suave">P.' + pId + ' ' + escapar(pLabel) + ':</span> <strong>' + escapar(valFormateado) + '</strong>' +
+              '</span>'
+            );
+          }
+        });
+
+        const totalPreg = preguntasDef.length || (compMap[dim.id] ? compMap[dim.id].total : 0);
+        const esCompleta = totalPreg > 0 ? (respondidasCount === totalPreg) : (compMap[dim.id] ? compMap[dim.id].completa : false);
+        const valorActual = esCompleta ? (est.subindices[dim.id] || 0) : 0;
+        const valorOriginal = esCompleta ? (inst.ies.subindices[dim.id] || 0) : 0;
         const delta = valorActual - valorOriginal;
-        const serieColor = 'var(--serie-' + ((idx % 7) + 1) + ')';
-        return '<div class="fila-dimension">' +
+        const serieColor = esCompleta ? ('var(--serie-' + ((idx % 7) + 1) + ')') : 'var(--borde-fuerte)';
+
+        let badgeCompletitud = '';
+        if (esCompleta) {
+          badgeCompletitud = '<span class="estado estado--ok" style="font-size: 11px; margin-left: 6px;">✓ Completa (' + respondidasCount + '/' + totalPreg + ' preg.)</span>';
+        } else if (respondidasCount > 0) {
+          badgeCompletitud = '<span class="estado estado--alerta" style="font-size: 11px; margin-left: 6px;">⏳ Incompleta (' + respondidasCount + '/' + totalPreg + ' preg. → 0 pts)</span>';
+        } else {
+          badgeCompletitud = '<span class="estado estado--neutro" style="font-size: 11px; margin-left: 6px;">Sin cargar (0/' + totalPreg + ' preg. → 0 pts)</span>';
+        }
+
+        return '<div class="fila-dimension" style="padding: 10px 12px; border: 1px solid var(--borde); border-radius: 8px; margin-bottom: 10px; background: var(--superficie);">' +
           '<div class="cabecera-dimension">' +
             '<div>' +
               '<span class="nombre-dimension">' + escapar(dim.nombre) + '</span> ' +
               '<span class="peso-dimension">(' + Math.round(dim.ponderacion * 100) + '% · ' + escapar(dim.secciones) + ')</span>' +
+              badgeCompletitud +
             '</div>' +
             '<div class="texto-numero">' +
               '<strong>' + valorActual + ' / 100</strong>' +
               (delta > 0 ? ' <span class="estado estado--ok">+' + delta + ' pts</span>' : '') +
             '</div>' +
           '</div>' +
-          '<div class="pista-barra">' +
+          '<div class="pista-barra" style="margin-bottom: ' + (itemsCargadosHtml.length > 0 ? '8px' : '0') + ';">' +
             '<div class="relleno-barra" style="width: ' + valorActual + '%; background: ' + serieColor + ';"></div>' +
           '</div>' +
+          (itemsCargadosHtml.length > 0
+            ? '<div class="ficha-meta-pills" style="gap: 6px; margin-top: 6px;">' + itemsCargadosHtml.join('') + '</div>'
+            : '<div class="texto-chico texto-suave" style="margin-top: 4px;">El auditor aún no registró respuestas en esta dimensión (puntaje asignado: 0 / 100).</div>') +
         '</div>';
       }).join('');
     }
@@ -1892,6 +2079,7 @@ const jsContent = `/* ==========================================================
             '<th class="numero">Seguridad (25%)</th>' +
             '<th class="numero">Agua (20%)</th>' +
             '<th class="numero">Cubiertas (18%)</th>' +
+            '<th class="numero">Clima (15%)</th>' +
             '<th class="numero">Índice IES</th>' +
             '<th>Semáforo</th>' +
             '<th>Competencia Activa</th>' +
@@ -1922,6 +2110,7 @@ const jsContent = `/* ==========================================================
               '<td class="numero">' + (sinRel ? '—' : est.subindices.seguridadCritica) + '</td>' +
               '<td class="numero">' + (sinRel ? '—' : est.subindices.aguaSaneamiento) + '</td>' +
               '<td class="numero">' + (sinRel ? '—' : est.subindices.estructuraCubiertas) + '</td>' +
+              '<td class="numero">' + (sinRel ? '—' : est.subindices.climatizacion) + '</td>' +
               '<td class="numero"><strong>' + (sinRel ? 'Sin relevar' : (est.global + ' / 100')) + '</strong></td>' +
               '<td><span class="estado ' + claseEstadoDesdeTexto(est.clasificacion) + '">' + escapar(est.clasificacion) + (est.tieneKillSwitch ? ' (KS)' : '') + '</span></td>' +
               '<td>' +

@@ -65,14 +65,19 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
       const previo = activos[idEsc];
       const tsPrevio = previo ? Number(previo.fechaUltimaModificacion || 0) : 0;
       const fotosPrevias = (previo && Array.isArray(previo.fotos)) ? previo.fotos : [];
-      const tieneNuevasFotos = numFotos > fotosPrevias.length;
+      const respPrevias = previo ? (previo.Respuestas || previo.respuestas || {}) : {};
+      const numRespPrevias = Object.keys(respPrevias).length;
 
-      if (tsPrevio > tsNuevo && !b.forzarActualizacion && !tieneNuevasFotos) {
-        continue;
-      }
-
-      const fotosFinales = numFotos > 0 ? fotosEntrantes : fotosPrevias;
-      const respFinales = numResp > 0 ? resp : (previo ? (previo.Respuestas || previo.respuestas || {}) : {});
+      const mapaFotos = {};
+      fotosPrevias.concat(fotosEntrantes).forEach((f) => {
+        if (f && f.dataUrl) {
+          mapaFotos[f.id || (f.seccionId + '-' + f.timestamp)] = f;
+        }
+      });
+      const fotosFinales = Object.values(mapaFotos);
+      const respFinales = numResp >= numRespPrevias
+        ? Object.assign({}, respPrevias, resp)
+        : Object.assign({}, resp, respPrevias);
 
       activos[idEsc] = {
         ...(previo || {}),
@@ -98,7 +103,11 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
   }
 
   fs.mkdirSync(path.dirname(RUTA_ACTIVOS), { recursive: true });
-  fs.writeFileSync(RUTA_ACTIVOS, JSON.stringify(activos, null, 2), 'utf8');
+  const jsonActivos = JSON.stringify(activos, null, 2);
+  fs.writeFileSync(RUTA_ACTIVOS, jsonActivos, 'utf8');
+  const rutaActivosPublic = path.join(ROOT_DIR, 'public/monitor/datos/relevamientos-activos.json');
+  fs.mkdirSync(path.dirname(rutaActivosPublic), { recursive: true });
+  fs.writeFileSync(rutaActivosPublic, jsonActivos, 'utf8');
 
   // Aplicar sobre bbdd-fodemeep.json
   const rutaPrincipal = RUTAS_BBDD[0];
@@ -178,6 +187,12 @@ function guardarRelevamientosYActualizarBbdd(nuevosBorradores) {
     if (escuelasActualizadas.length > 0) {
       console.log('[SYNC MONITOR] Instituciones impactadas en BBDD:', JSON.stringify(escuelasActualizadas));
     }
+    if (cambios > 0) {
+      const { execFile } = require('child_process');
+      execFile(process.execPath, [path.join(ROOT_PROJECT, 'scripts', 'generar_tablero_js.cjs')], (err) => {
+        if (err) console.error('Error regenerando tablero.js:', err.message);
+      });
+    }
     return { cambios, totalActivos: Object.keys(activos).length, escuelasActualizadas };
   }
 
@@ -246,6 +261,24 @@ function manejarRequest(req, res) {
     return;
   }
 
+  // Rutas especiales para el Visor SQL y los scripts SQL originales
+  if (urlClean === '/visor-bbdd.html' || urlClean === '/sql') {
+    const fpVisor = path.join(ROOT_PROJECT, 'public', 'visor-bbdd.html');
+    if (fs.existsSync(fpVisor)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+      return fs.createReadStream(fpVisor).pipe(res);
+    }
+  }
+
+  if (urlClean.startsWith('/supabase/') && urlClean.endsWith('.sql')) {
+    const nombreSql = path.basename(urlClean);
+    const fpSql = path.join(ROOT_PROJECT, 'supabase', nombreSql);
+    if (fs.existsSync(fpSql)) {
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' });
+      return fs.createReadStream(fpSql).pipe(res);
+    }
+  }
+
   // Servir archivos estáticos del Monitor
   let relPath = urlClean === '/' ? '/index.html' : urlClean;
   const fp = path.join(ROOT_MONITOR, relPath);
@@ -293,6 +326,8 @@ async function sincronizarDesdeCloudRelay() {
           eventosCloudProcesados.add(evt.id);
           if (obtenerIdEscuelaBorrador(parsed)) {
             recibidos.push(parsed);
+          } else if (parsed.borrador && obtenerIdEscuelaBorrador(parsed.borrador)) {
+            recibidos.push(parsed.borrador);
           } else if (Array.isArray(parsed.borradores)) {
             recibidos.push(...parsed.borradores);
           }

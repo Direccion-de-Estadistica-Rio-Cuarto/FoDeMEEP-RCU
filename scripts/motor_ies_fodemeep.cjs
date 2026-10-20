@@ -286,22 +286,66 @@ function evaluarBorradorSobreInstitucion(inst, borrador) {
     }
   }
 
-  // Cálculo de las 7 dimensiones (idéntico a src/services/engineIndice.ts)
+  const PREGUNTAS_DIM = {
+    seguridadCritica: [42, 43, 45, 46, 51, 52, 112, 113, 114, 115, 116, 117, 118, 119, 126, 127, 136],
+    aguaSaneamiento: [57, 58, 59, 60, 87, 88, 89, 90, 91, 93, 98, 99, 101, 103, 104, 106, 108],
+    estructuraCubiertas: [23, 25, 27, 28, 30, 32, 34, 36, 38, 39],
+    climatizacion: [66, 67, 68, 69, 70, 80, 81, 82, 83],
+    alimentacionCocina: [159, 162, 163],
+    accesibilidad: [148, 152],
+    entornoExterior: [141, 143, 144]
+  };
+
+  function verificarCompletitudDimension(dimId) {
+    const lista = PREGUNTAS_DIM[dimId] || [];
+    const total = lista.length;
+    let respondidas = 0;
+    for (let i = 0; i < lista.length; i++) {
+      const qId = lista[i];
+      const v = respuestas[qId];
+      if (v !== undefined && v !== null && v !== '') {
+        respondidas++;
+      }
+    }
+    return {
+      respondidas: respondidas,
+      total: total,
+      completa: total > 0 && respondidas === total
+    };
+  }
+
+  const completitudDimensiones = {
+    seguridadCritica: verificarCompletitudDimension('seguridadCritica'),
+    aguaSaneamiento: verificarCompletitudDimension('aguaSaneamiento'),
+    estructuraCubiertas: verificarCompletitudDimension('estructuraCubiertas'),
+    climatizacion: verificarCompletitudDimension('climatizacion'),
+    alimentacionCocina: verificarCompletitudDimension('alimentacionCocina'),
+    accesibilidad: verificarCompletitudDimension('accesibilidad'),
+    entornoExterior: verificarCompletitudDimension('entornoExterior')
+  };
+
+  // Cálculo de las 7 dimensiones: si no está cargada en su totalidad, vale 0
   const fallasSeguridad = incidencias.filter((i) => ['GAS', 'ELECTRICIDAD', 'MATAFUEGOS'].includes(i.tipoNombre));
   const puntosRestaSeg = fallasSeguridad.reduce((acc, c) => acc + c.puntosRecuperables, 0);
-  const puntajeSeguridad = Math.round(Math.max(10, Math.min(100, 100 - puntosRestaSeg * 2.2)));
+  const puntajeSeguridad = completitudDimensiones.seguridadCritica.completa
+    ? Math.round(Math.max(10, Math.min(100, 100 - puntosRestaSeg * 2.2)))
+    : 0;
 
   const fallasAgua = incidencias.filter((i) =>
     ['PLOMERIA', 'BOMBA', 'LIMPIEZA DE TANQUE/CISTERNA', 'DESAGOTE', 'LIMPIEZA DE DESAGUES'].includes(i.tipoNombre)
   );
   const puntosRestaAgua = fallasAgua.reduce((acc, c) => acc + c.puntosRecuperables, 0);
-  const puntajeAgua = Math.round(Math.max(10, Math.min(100, 100 - puntosRestaAgua * 2.5)));
+  const puntajeAgua = completitudDimensiones.aguaSaneamiento.completa
+    ? Math.round(Math.max(10, Math.min(100, 100 - puntosRestaAgua * 2.5)))
+    : 0;
 
   const fallasEstructura = incidencias.filter((i) =>
     ['FILTRACIONES', 'ALBAÑILERIA', 'HERRERIA', 'PINTURA', 'OBRA'].includes(i.tipoNombre)
   );
   const puntosRestaEst = fallasEstructura.reduce((acc, c) => acc + c.puntosRecuperables, 0);
-  const puntajeEstructura = Math.round(Math.max(10, Math.min(100, 100 - puntosRestaEst * 2.2)));
+  const puntajeEstructura = completitudDimensiones.estructuraCubiertas.completa
+    ? Math.round(Math.max(10, Math.min(100, 100 - puntosRestaEst * 2.2)))
+    : 0;
 
   const fueraServicioCalef = Number(respuestas[69] || 0);
   const funcionandoCalef = Number(respuestas[66] || 0);
@@ -310,16 +354,24 @@ function evaluarBorradorSobreInstitucion(inst, borrador) {
   const fallasClima = incidencias.filter((i) =>
     ['REPARACION/MANT. DE ARTEFACTOS', 'ADQUISICION ART. CLIMATIZACION'].includes(i.tipoNombre)
   );
-  let puntajeClima = Math.round(Math.max(15, Math.min(100, ratioCalef * 70 + (30 - fallasClima.length * 5))));
+  const puntajeClima = completitudDimensiones.climatizacion.completa
+    ? Math.round(Math.max(15, Math.min(100, ratioCalef * 70 + (30 - fallasClima.length * 5))))
+    : 0;
 
   const fallasCocina = incidencias.filter((i) => i.seccion.includes('Cocina'));
-  const puntajeCocina = Math.round(Math.max(20, Math.min(100, 100 - fallasCocina.length * 15)));
+  const puntajeCocina = completitudDimensiones.alimentacionCocina.completa
+    ? Math.round(Math.max(20, Math.min(100, 100 - fallasCocina.length * 15)))
+    : 0;
 
   const fallasAcc = incidencias.filter((i) => i.seccion.includes('Accesibilidad'));
-  const puntajeAcc = Math.round(Math.max(20, Math.min(100, 100 - fallasAcc.length * 20)));
+  const puntajeAcc = completitudDimensiones.accesibilidad.completa
+    ? Math.round(Math.max(20, Math.min(100, 100 - fallasAcc.length * 20)))
+    : 0;
 
   const fallasExt = incidencias.filter((i) => ['PODA/CORTE DE PASTO'].includes(i.tipoNombre));
-  const puntajeExt = Math.round(Math.max(20, Math.min(100, 100 - fallasExt.length * 18)));
+  const puntajeExt = completitudDimensiones.entornoExterior.completa
+    ? Math.round(Math.max(20, Math.min(100, 100 - fallasExt.length * 18)))
+    : 0;
 
   const subindices = {
     seguridadCritica: puntajeSeguridad,
@@ -378,8 +430,16 @@ function evaluarBorradorSobreInstitucion(inst, borrador) {
     hashIntegridad: String(borrador.hashIntegridad || 'sello-sha256-verificado').slice(0, 24),
     superficieM2: Number(respuestas[16] || inst.relevamiento.superficieM2 || 0),
     calefactoresFuncionando: funcionandoCalef,
+    calefactoresGas: Number(respuestas[67] || 0),
+    calefactoresElectricos: Number(respuestas[68] || 0),
     calefactoresAveriados: fueraServicioCalef,
+    coberturaCalefaccion: respuestas[70] === 'si' ? 'Sí (Completa)' : (respuestas[70] === 'no' ? 'No (Incompleta)' : 'Sin informar'),
+    ventiladoresInstalados: Number(respuestas[80] || 0),
+    ventiladoresFuncionando: Number(respuestas[81] || 0),
+    airesInstalados: Number(respuestas[82] || 0),
+    airesFuncionando: Number(respuestas[83] || 0),
     respuestasCargadas: keys.length,
+    respuestas: respuestas,
     fotosCargadas: listaEvidencias.length,
     evidencias: listaEvidencias
   };
@@ -391,7 +451,8 @@ function evaluarBorradorSobreInstitucion(inst, borrador) {
     tieneKillSwitch: penalizadores.length > 0,
     factorKillSwitch: factorMultiplicador,
     motivoKillSwitch: penalizadores.length > 0 ? penalizadores.map((p) => p.motivo).join(' · ') : null,
-    subindices: subindices
+    subindices: subindices,
+    completitudDimensiones: completitudDimensiones
   };
 
   inst.incidencias = incidencias;

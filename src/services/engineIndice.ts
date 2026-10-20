@@ -51,47 +51,70 @@ export function calcularIndiceInstitucional(
     }
   }
 
-  // Dimensiones
+  const dimensionCompleta = (seccionesIds: number[]): { completa: boolean; respondidas: number; total: number } => {
+    let total = 0;
+    let respondidas = 0;
+    for (const sec of SECCIONES_RELEVAMIENTO) {
+      if (seccionesIds.includes(sec.numero)) {
+        for (const p of sec.preguntas) {
+          total++;
+          const v = respuestas[p.id];
+          if (v !== undefined && v !== null && v !== '') {
+            respondidas++;
+          }
+        }
+      }
+    }
+    return { completa: total > 0 && respondidas === total, respondidas, total };
+  };
+
+  // Dimensiones: si el auditor no cargó en su totalidad la dimensión, el puntaje es 0
+  const compSeg = dimensionCompleta([4, 9, 10]);
   const fallasSeguridad = incidencias.filter((i) => ['GAS', 'ELECTRICIDAD', 'MATAFUEGOS'].includes(i.tipo));
   const puntosRestaSeg = fallasSeguridad.reduce((acc, curr) => acc + curr.puntosImpacto, 0);
-  const puntajeSeguridad = Math.max(10, Math.min(100, 100 - puntosRestaSeg * 2.2));
+  const puntajeSeguridad = compSeg.completa ? Math.max(10, Math.min(100, 100 - puntosRestaSeg * 2.2)) : 0;
 
+  const compAgua = dimensionCompleta([5, 7, 8]);
   const fallasAgua = incidencias.filter((i) =>
     ['PLOMERIA', 'BOMBA', 'LIMPIEZA DE TANQUE/CISTERNA', 'DESAGOTE', 'LIMPIEZA DE DESAGUES'].includes(i.tipo)
   );
   const puntosRestaAgua = fallasAgua.reduce((acc, curr) => acc + curr.puntosImpacto, 0);
-  const puntajeAgua = Math.max(10, Math.min(100, 100 - puntosRestaAgua * 2.5));
+  const puntajeAgua = compAgua.completa ? Math.max(10, Math.min(100, 100 - puntosRestaAgua * 2.5)) : 0;
 
+  const compEst = dimensionCompleta([3]);
   const fallasEstructura = incidencias.filter((i) =>
     ['FILTRACIONES', 'ALBAÑILERIA', 'HERRERIA', 'PINTURA', 'OBRA'].includes(i.tipo)
   );
   const puntosRestaEst = fallasEstructura.reduce((acc, curr) => acc + curr.puntosImpacto, 0);
-  const puntajeEstructura = Math.max(10, Math.min(100, 100 - puntosRestaEst * 2.2));
+  const puntajeEstructura = compEst.completa ? Math.max(10, Math.min(100, 100 - puntosRestaEst * 2.2)) : 0;
 
+  const compClima = dimensionCompleta([6]);
   const fueraServicioCalef = Number(respuestas[69] || 0);
   const totalCalef = Number(respuestas[66] || 0) + fueraServicioCalef;
   let ratioCalef = totalCalef > 0 ? (totalCalef - fueraServicioCalef) / totalCalef : 1;
   const fallasClima = incidencias.filter((i) =>
     ['REPARACION/MANTENIMIENTO DE ARTEFACTOS', 'ADQUISICION DE ARTEFACTOS DE CLIMATIZACION'].includes(i.tipo)
   );
-  let puntajeClima = ratioCalef * 70 + (30 - fallasClima.length * 5);
-  puntajeClima = Math.max(15, Math.min(100, puntajeClima));
+  let puntajeClima = compClima.completa ? Math.max(15, Math.min(100, ratioCalef * 70 + (30 - fallasClima.length * 5))) : 0;
 
+  const compCocina = dimensionCompleta([13]);
   const fallasCocina = incidencias.filter((i) => i.seccion.includes('Cocina'));
-  const puntajeCocina = Math.max(20, Math.min(100, 100 - fallasCocina.length * 15));
+  const puntajeCocina = compCocina.completa ? Math.max(20, Math.min(100, 100 - fallasCocina.length * 15)) : 0;
 
+  const compAcc = dimensionCompleta([12]);
   const fallasAcc = incidencias.filter((i) => i.seccion.includes('Accesibilidad'));
-  const puntajeAcc = Math.max(20, Math.min(100, 100 - fallasAcc.length * 20));
+  const puntajeAcc = compAcc.completa ? Math.max(20, Math.min(100, 100 - fallasAcc.length * 20)) : 0;
 
+  const compExt = dimensionCompleta([11]);
   const fallasExt = incidencias.filter((i) => ['PODA/CORTE DE PASTO'].includes(i.tipo));
-  const puntajeExt = Math.max(20, Math.min(100, 100 - fallasExt.length * 18));
+  const puntajeExt = compExt.completa ? Math.max(20, Math.min(100, 100 - fallasExt.length * 18)) : 0;
 
   const dimSeg: SubindiceDimension = {
     nombre: 'Seguridad Crítica e Instalaciones',
     ponderacion: 0.25,
     puntaje: Math.round(puntajeSeguridad),
     estado: calcularEstadoDesdePuntaje(puntajeSeguridad),
-    itemsEvaluados: 18,
+    itemsEvaluados: compSeg.total,
     fallasDetectadas: fallasSeguridad.length,
   };
 
@@ -100,7 +123,7 @@ export function calcularIndiceInstitucional(
     ponderacion: 0.2,
     puntaje: Math.round(puntajeAgua),
     estado: calcularEstadoDesdePuntaje(puntajeAgua),
-    itemsEvaluados: 14,
+    itemsEvaluados: compAgua.total,
     fallasDetectadas: fallasAgua.length,
   };
 
@@ -109,7 +132,7 @@ export function calcularIndiceInstitucional(
     ponderacion: 0.18,
     puntaje: Math.round(puntajeEstructura),
     estado: calcularEstadoDesdePuntaje(puntajeEstructura),
-    itemsEvaluados: 12,
+    itemsEvaluados: compEst.total,
     fallasDetectadas: fallasEstructura.length,
   };
 
@@ -118,7 +141,7 @@ export function calcularIndiceInstitucional(
     ponderacion: 0.15,
     puntaje: Math.round(puntajeClima),
     estado: calcularEstadoDesdePuntaje(puntajeClima),
-    itemsEvaluados: 9,
+    itemsEvaluados: compClima.total,
     fallasDetectadas: fallasClima.length,
   };
 
@@ -127,7 +150,7 @@ export function calcularIndiceInstitucional(
     ponderacion: 0.1,
     puntaje: Math.round(puntajeCocina),
     estado: calcularEstadoDesdePuntaje(puntajeCocina),
-    itemsEvaluados: 5,
+    itemsEvaluados: compCocina.total,
     fallasDetectadas: fallasCocina.length,
   };
 
@@ -136,7 +159,7 @@ export function calcularIndiceInstitucional(
     ponderacion: 0.07,
     puntaje: Math.round(puntajeAcc),
     estado: calcularEstadoDesdePuntaje(puntajeAcc),
-    itemsEvaluados: 4,
+    itemsEvaluados: compAcc.total,
     fallasDetectadas: fallasAcc.length,
   };
 
@@ -145,7 +168,7 @@ export function calcularIndiceInstitucional(
     ponderacion: 0.05,
     puntaje: Math.round(puntajeExt),
     estado: calcularEstadoDesdePuntaje(puntajeExt),
-    itemsEvaluados: 4,
+    itemsEvaluados: compExt.total,
     fallasDetectadas: fallasExt.length,
   };
 
